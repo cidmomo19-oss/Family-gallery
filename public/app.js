@@ -7,6 +7,7 @@ let activeFilter = "all";
 let currentSelectedItem = null;
 let currentFolder = null;
 let selectedFilesQueue = []; // Temporarily hold selected files
+let dpInstance = null; // Store active DPlayer instance
 
 // Initialize Lucide Icons
 lucide.createIcons();
@@ -244,10 +245,11 @@ function setupEventListeners() {
     btnCloseLightbox.onclick = () => {
       lightboxModal.classList.add("hidden");
       document.body.classList.remove("overflow-hidden");
-      // Stop any video playing
-      const videoEl = document.querySelector("#lightboxContent video");
-      if (videoEl) {
-        videoEl.pause();
+
+      // Destroy DPlayer instance cleanly if any
+      if (dpInstance) {
+        dpInstance.destroy();
+        dpInstance = null;
       }
     };
   }
@@ -492,170 +494,25 @@ window.openLightbox = (id) => {
   if (item.media_type === "image") {
     contentContainer.innerHTML = `<img src="${item.view_url}" class="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl">`;
   } else {
-    // Elegant custom video player (JW Player Skin inspired)
-    contentContainer.innerHTML = `
-      <div class="relative w-full max-h-[75vh] group/player bg-black rounded-xl overflow-hidden flex items-center justify-center">
-        <video id="customVideo" src="${item.view_url}" playsinline class="w-full max-h-[75vh] object-contain"></video>
+    // Beautiful integration with DPlayer as requested
+    contentContainer.innerHTML = `<div id="dplayer-container" class="w-full h-[50vh] sm:h-[60vh]"></div>`;
 
-        <!-- Big Play Button Overlay -->
-        <button id="bigPlayBtn" class="absolute w-14 h-14 bg-violet-600/90 hover:bg-violet-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform scale-100 hover:scale-110 duration-200 z-10">
-          <i data-lucide="play" class="w-6 h-6 fill-current ml-1" id="bigPlayIcon"></i>
-        </button>
-
-        <!-- JW Player Skin style control bar -->
-        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-neutral-950/90 via-neutral-900/60 to-transparent p-3 flex flex-col gap-2 opacity-0 group-hover/player:opacity-100 transition-opacity duration-300 z-20">
-
-          <!-- Timeline progress range -->
-          <div class="flex items-center">
-            <input type="range" id="videoTimeline" min="0" max="100" value="0" class="timeline-slider">
-          </div>
-
-          <!-- Bottom controls bar row -->
-          <div class="flex items-center justify-between text-white">
-            <div class="flex items-center gap-3">
-              <!-- Play / Pause button -->
-              <button id="videoPlayPauseBtn" class="hover:text-violet-400 transition">
-                <i data-lucide="play" class="w-4 h-4" id="videoPlayIcon"></i>
-              </button>
-
-              <!-- Time Counter -->
-              <span id="videoTimeText" class="text-[9px] font-semibold text-neutral-300">0:00 / 0:00</span>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <!-- Mute Button -->
-              <button id="videoMuteBtn" class="hover:text-violet-400 transition">
-                <i data-lucide="volume-2" class="w-4 h-4" id="videoMuteIcon"></i>
-              </button>
-
-              <!-- Fullscreen Button -->
-              <button id="videoFullscreenBtn" class="hover:text-violet-400 transition">
-                <i data-lucide="maximize" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Bind Custom Player interactivity
+    // Initialize DPlayer instance
     setTimeout(() => {
-      initCustomPlayer();
+      dpInstance = new DPlayer({
+        container: document.getElementById('dplayer-container'),
+        video: {
+          url: item.view_url,
+          thumbnails: '',
+        },
+        autoplay: true,
+        theme: '#8b5cf6' // Violet accent theme
+      });
     }, 50);
   }
-
-  document.getElementById("lightboxTitle").innerText = item.title;
-  document.getElementById("lightboxDeleteBtn").onclick = () => deleteMedia(item.id);
 
   // Lock scrolling
   document.body.classList.add("overflow-hidden");
 
   lightboxModal.classList.remove("hidden");
-  lucide.createIcons();
 };
-
-// Custom Video Player Skin Interactive Logic (JW Player inspired)
-function initCustomPlayer() {
-  const video = document.getElementById("customVideo");
-  const bigPlayBtn = document.getElementById("bigPlayBtn");
-  const bigPlayIcon = document.getElementById("bigPlayIcon");
-  const playPauseBtn = document.getElementById("videoPlayPauseBtn");
-  const playIcon = document.getElementById("videoPlayIcon");
-  const timeline = document.getElementById("videoTimeline");
-  const timeText = document.getElementById("videoTimeText");
-  const muteBtn = document.getElementById("videoMuteBtn");
-  const muteIcon = document.getElementById("videoMuteIcon");
-  const fullscreenBtn = document.getElementById("videoFullscreenBtn");
-
-  if (!video) return;
-
-  function formatTime(seconds) {
-    if (isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  }
-
-  // Toggle Play / Pause
-  function togglePlay() {
-    if (video.paused) {
-      video.play();
-      bigPlayBtn.classList.add("opacity-0", "pointer-events-none");
-      playIcon.setAttribute("data-lucide", "pause");
-      lucide.createIcons();
-    } else {
-      video.pause();
-      bigPlayBtn.classList.remove("opacity-0", "pointer-events-none");
-      playIcon.setAttribute("data-lucide", "play");
-      lucide.createIcons();
-    }
-  }
-
-  bigPlayBtn.onclick = togglePlay;
-  playPauseBtn.onclick = togglePlay;
-  video.onclick = togglePlay;
-
-  // Metadata loaded
-  video.onloadedmetadata = () => {
-    timeline.max = Math.floor(video.duration);
-    timeText.innerText = `0:00 / ${formatTime(video.duration)}`;
-  };
-
-  // Update Progress / Current Time
-  video.ontimeupdate = () => {
-    timeline.value = Math.floor(video.currentTime);
-    timeText.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-  };
-
-  // Seek timeline
-  timeline.oninput = () => {
-    video.currentTime = timeline.value;
-  };
-
-  // Toggle Mute
-  muteBtn.onclick = () => {
-    video.muted = !video.muted;
-    if (video.muted) {
-      muteIcon.setAttribute("data-lucide", "volume-x");
-    } else {
-      muteIcon.setAttribute("data-lucide", "volume-2");
-    }
-    lucide.createIcons();
-  };
-
-  // Fullscreen
-  fullscreenBtn.onclick = () => {
-    if (video.requestFullscreen) {
-      video.requestFullscreen();
-    } else if (video.webkitRequestFullscreen) {
-      video.webkitRequestFullscreen();
-    } else if (video.msRequestFullscreen) {
-      video.msRequestFullscreen();
-    }
-  };
-}
-
-// Hapus Media
-async function deleteMedia(id) {
-  if (!confirm("Hapus file ini selamanya?")) return;
-
-  const currentKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
-
-  try {
-    const res = await fetch(`/api/media/${id}`, {
-      method: "DELETE",
-      headers: { "X-API-Key": currentKey }
-    });
-
-    const json = await res.json();
-    if (json.success) {
-      lightboxModal.classList.add("hidden");
-      document.body.classList.remove("overflow-hidden");
-      fetchMediaList();
-    } else {
-      alert(`Gagal menghapus: ${json.error}`);
-    }
-  } catch (err) {
-    alert(`Error: ${err.message}`);
-  }
-}
