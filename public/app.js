@@ -7,10 +7,41 @@ let activeFilter = "all";
 let currentSelectedItem = null;
 let currentFolder = null;
 let selectedFilesQueue = []; // Temporarily hold selected files
-let remoteUrlToUpload = null; // Temporarily hold remote link url
+let folderSearchQuery = "";
 
 // Initialize Lucide Icons
 lucide.createIcons();
+
+// Simple Toast Helper
+function showToast(message, type = "success") {
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+
+  const toast = document.createElement("div");
+  toast.className = "px-4 py-2.5 bg-neutral-900 text-white rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto";
+
+  const iconName = type === "success" ? "check-circle" : "alert-circle";
+  const iconColor = type === "success" ? "text-green-400" : "text-red-400";
+  toast.innerHTML = `
+    <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i>
+    <span>${message}</span>
+  `;
+  container.appendChild(toast);
+  lucide.createIcons();
+
+  // Trigger layout painting for animation
+  setTimeout(() => {
+    toast.classList.remove("translate-y-2", "opacity-0");
+  }, 10);
+
+  // Auto Dismiss
+  setTimeout(() => {
+    toast.classList.add("translate-y-2", "opacity-0");
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 2500);
+}
 
 // DOM Elements
 const dropzone = document.getElementById("dropzone");
@@ -27,10 +58,6 @@ const folderPromptModal = document.getElementById("folderPromptModal");
 const folderPromptInput = document.getElementById("folderPromptInput");
 const btnConfirmUpload = document.getElementById("btnConfirmUpload");
 const btnCancelUpload = document.getElementById("btnCancelUpload");
-
-// Remote MP4 upload elements
-const remoteLinkInput = document.getElementById("remoteLinkInput");
-const btnRemoteUpload = document.getElementById("btnRemoteUpload");
 
 const uploadProgressContainer = document.getElementById("uploadProgressContainer");
 const progressBar = document.getElementById("progressBar");
@@ -53,6 +80,13 @@ document.addEventListener("DOMContentLoaded", () => {
     apiKeyInput.value = savedApiKey;
   }
 
+  // Parse query params for shared folder
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedFolder = urlParams.get("folder");
+  if (sharedFolder) {
+    currentFolder = decodeURIComponent(sharedFolder);
+  }
+
   fetchMediaList();
   setupEventListeners();
 });
@@ -64,6 +98,7 @@ async function fetchMediaList() {
     const json = await res.json();
     if (json.success) {
       mediaItems = json.data;
+      setupFlashbackWidget();
       if (currentFolder) {
         renderFolderGallery();
       } else {
@@ -75,8 +110,65 @@ async function fetchMediaList() {
   }
 }
 
+// Kilas Balik Memori (Flashback Widget Setup)
+let flashbackItem = null;
+function setupFlashbackWidget() {
+  const widget = document.getElementById("flashbackWidget");
+  const thumb = document.getElementById("flashbackThumb");
+  const title = document.getElementById("flashbackTitle");
+  const meta = document.getElementById("flashbackMeta");
+  const btnOpen = document.getElementById("btnOpenFlashback");
+
+  if (!widget || !thumb || !title || !meta || !btnOpen) return;
+
+  if (mediaItems.length === 0) {
+    widget.classList.add("hidden");
+    return;
+  }
+
+  // Randomly select an item if not set already
+  if (!flashbackItem) {
+    const randomIndex = Math.floor(Math.random() * mediaItems.length);
+    flashbackItem = mediaItems[randomIndex];
+  }
+
+  if (flashbackItem.media_type === "image") {
+    thumb.innerHTML = `<img src="${flashbackItem.view_url}" alt="${flashbackItem.title}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
+  } else {
+    thumb.innerHTML = `
+      <video src="${flashbackItem.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="metadata"></video>
+      <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+        <i data-lucide="play" class="w-4 h-4 text-white fill-current"></i>
+      </div>
+    `;
+  }
+
+  title.innerText = flashbackItem.title;
+  meta.innerHTML = `
+    <i data-lucide="folder" class="w-2.5 h-2.5"></i>
+    <span>Folder: ${flashbackItem.category || "Umum"}</span>
+  `;
+
+  btnOpen.onclick = (e) => {
+    e.stopPropagation();
+    openLightbox(flashbackItem.id);
+  };
+
+  lucide.createIcons();
+}
+
 // Render Folder Grid
 function renderFolders() {
+  const widget = document.getElementById("flashbackWidget");
+  if (widget && mediaItems.length > 0) {
+    widget.classList.remove("hidden");
+  }
+
+  const searchContainer = document.getElementById("searchFolderContainer");
+  if (searchContainer) {
+    searchContainer.classList.remove("hidden");
+  }
+
   const foldersMap = {};
 
   mediaItems.forEach(item => {
@@ -94,14 +186,30 @@ function renderFolders() {
     }
   });
 
-  const folders = Object.values(foldersMap);
+  let folders = Object.values(foldersMap);
+
+  // Apply Live Search Filter
+  if (folderSearchQuery) {
+    folders = folders.filter(f => f.name.toLowerCase().includes(folderSearchQuery.toLowerCase()));
+  }
 
   if (folders.length === 0) {
-    folderGrid.classList.add("hidden");
+    if (folderSearchQuery) {
+      // Show empty search results, keep folderGrid visible to display no results message
+      folderGrid.classList.remove("hidden");
+      folderGrid.innerHTML = `
+        <div class="col-span-2 text-center py-12 text-neutral-400 font-semibold text-[10px]">
+          Tidak ada folder yang cocok dengan "${folderSearchQuery}"
+        </div>
+      `;
+    } else {
+      folderGrid.classList.add("hidden");
+      emptyState.classList.remove("hidden");
+    }
     galleryGrid.classList.add("hidden");
     document.getElementById("filterContainer").classList.add("hidden");
     document.getElementById("btnBackToFolders").classList.add("hidden");
-    emptyState.classList.remove("hidden");
+    document.getElementById("btnShareFolder").classList.add("hidden");
     return;
   }
 
@@ -110,6 +218,7 @@ function renderFolders() {
   galleryGrid.classList.add("hidden");
   document.getElementById("filterContainer").classList.add("hidden");
   document.getElementById("btnBackToFolders").classList.add("hidden");
+  document.getElementById("btnShareFolder").classList.add("hidden");
   document.getElementById("galleryTitle").innerHTML = `
     <i data-lucide="folder" class="w-3.5 h-3.5 text-violet-500"></i>
     <span>Daftar Folder Bani Dumeri</span>
@@ -176,6 +285,10 @@ function renderFolders() {
 // Select a folder to display
 window.selectFolder = (encodedName) => {
   currentFolder = decodeURIComponent(encodedName);
+  // Update browser history query parameters cleanly without reloading
+  const newUrl = new URL(window.location.href);
+  newUrl.searchParams.set("folder", currentFolder);
+  window.history.pushState({ folder: currentFolder }, "", newUrl);
   renderFolderGallery();
 };
 
@@ -195,10 +308,21 @@ function renderFolderGallery() {
     return activeFilter === "all" ? true : item.media_type === activeFilter;
   });
 
+  const widget = document.getElementById("flashbackWidget");
+  if (widget) {
+    widget.classList.add("hidden");
+  }
+
+  const searchContainer = document.getElementById("searchFolderContainer");
+  if (searchContainer) {
+    searchContainer.classList.add("hidden");
+  }
+
   folderGrid.classList.add("hidden");
   galleryGrid.classList.remove("hidden");
   document.getElementById("filterContainer").classList.remove("hidden");
   document.getElementById("btnBackToFolders").classList.remove("hidden");
+  document.getElementById("btnShareFolder").classList.remove("hidden");
   emptyState.classList.add("hidden");
 
   document.getElementById("galleryTitle").innerHTML = `
@@ -244,6 +368,15 @@ function setupEventListeners() {
   const btnSaveKey = document.getElementById("btnSaveKey");
   const apiKeyInput = document.getElementById("apiKeyInput");
   const btnBackToFolders = document.getElementById("btnBackToFolders");
+  const btnShareFolder = document.getElementById("btnShareFolder");
+  const searchFolderInput = document.getElementById("searchFolderInput");
+
+  if (searchFolderInput) {
+    searchFolderInput.oninput = (e) => {
+      folderSearchQuery = e.target.value;
+      renderFolders();
+    };
+  }
 
   if (btnCloseLightbox) {
     btnCloseLightbox.onclick = () => {
@@ -258,7 +391,35 @@ function setupEventListeners() {
   if (btnBackToFolders) {
     btnBackToFolders.onclick = () => {
       currentFolder = null;
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("folder");
+      window.history.pushState({}, "", newUrl);
       renderFolders();
+    };
+  }
+
+  if (btnShareFolder) {
+    btnShareFolder.onclick = () => {
+      if (!currentFolder) return;
+      const shareUrl = `${window.location.origin}${window.location.pathname}?folder=${encodeURIComponent(currentFolder)}`;
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => {
+          showToast(`Link folder "${currentFolder}" berhasil disalin!`);
+        })
+        .catch(() => {
+          // Fallback if Clipboard API fails or blocked
+          const textArea = document.createElement("textarea");
+          textArea.value = shareUrl;
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            showToast(`Link folder "${currentFolder}" berhasil disalin!`);
+          } catch (err) {
+            alert("Gagal menyalin link.");
+          }
+          document.body.removeChild(textArea);
+        });
     };
   }
 
@@ -288,7 +449,6 @@ function setupEventListeners() {
   if (btnCancelUpload) {
     btnCancelUpload.onclick = () => {
       selectedFilesQueue = [];
-      remoteUrlToUpload = null;
       fileInput.value = "";
       folderPromptInput.value = "";
       folderPromptModal.classList.add("hidden");
@@ -305,35 +465,7 @@ function setupEventListeners() {
       }
       folderPromptModal.classList.add("hidden");
 
-      if (remoteUrlToUpload) {
-        handleRemoteUpload(remoteUrlToUpload, folderVal);
-      } else {
-        handleBatchUpload(selectedFilesQueue, folderVal);
-      }
-    };
-  }
-
-  // Bind Remote Link upload button click
-  if (btnRemoteUpload && remoteLinkInput) {
-    btnRemoteUpload.onclick = () => {
-      const linkVal = remoteLinkInput.value.trim();
-      if (!linkVal) {
-        alert("Silakan tempel URL video .mp4 terlebih dahulu!");
-        remoteLinkInput.focus();
-        return;
-      }
-      if (!linkVal.toLowerCase().endsWith(".mp4") && !linkVal.toLowerCase().includes(".mp4?")) {
-        alert("URL harus diakhiri atau memiliki format video .mp4!");
-        remoteLinkInput.focus();
-        return;
-      }
-
-      // Store link and prompt folder modal
-      remoteUrlToUpload = linkVal;
-      selectedFilesQueue = []; // Clear local file queue
-      folderPromptInput.value = "";
-      folderPromptModal.classList.remove("hidden");
-      folderPromptInput.focus();
+      handleBatchUpload(selectedFilesQueue, folderVal);
     };
   }
 
@@ -360,7 +492,6 @@ function setupEventListeners() {
 
       if (e.dataTransfer.files.length > 0) {
         selectedFilesQueue = Array.from(e.dataTransfer.files);
-        remoteUrlToUpload = null; // Clear remote link
         // Show folder name prompt modal
         folderPromptInput.value = "";
         folderPromptModal.classList.remove("hidden");
@@ -374,7 +505,6 @@ function setupEventListeners() {
     fileInput.onchange = (e) => {
       if (e.target.files.length > 0) {
         selectedFilesQueue = Array.from(e.target.files);
-        remoteUrlToUpload = null; // Clear remote link
         // Show folder name prompt modal
         folderPromptInput.value = "";
         folderPromptModal.classList.remove("hidden");
@@ -382,80 +512,6 @@ function setupEventListeners() {
       }
     };
   }
-}
-
-// Handle Remote MP4 URL Link metadata entry in D1 Directly
-async function handleRemoteUpload(remoteUrl, folderName) {
-  // Extract custom title from url filename
-  let autoTitle = "Video Link";
-  try {
-    const parts = remoteUrl.split("/");
-    const lastPart = parts[parts.length - 1].split("?")[0];
-    if (lastPart && lastPart.toLowerCase().endsWith(".mp4")) {
-      autoTitle = lastPart.substring(0, lastPart.lastIndexOf("."));
-    }
-  } catch (e) {}
-
-  // Show status indicator
-  uploadProgressContainer.classList.remove("hidden");
-  overallProgressText.innerText = "Menghubungkan link video...";
-  progressBar.style.width = "40%";
-  uploadPercent.innerText = "40%";
-
-  statusList.innerHTML = `
-    <div class="flex items-center justify-between text-[10px] bg-neutral-50 p-2.5 rounded-xl border border-purple-100/30">
-      <span class="text-neutral-700 font-semibold truncate max-w-[70%]">${autoTitle}.mp4</span>
-      <span class="status-badge text-amber-500 font-extrabold uppercase tracking-wider text-[8px]">Menyimpan Link</span>
-    </div>
-  `;
-
-  try {
-    // Write directly to D1 metadata api
-    const saveRes = await fetch("/api/media", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: autoTitle,
-        description: "Remote Uploaded Link",
-        category: folderName,
-        media_type: "video",
-        r2_key: "remote-" + Date.now(),
-        view_url: remoteUrl,
-        download_url: remoteUrl,
-        file_size: 0
-      })
-    });
-
-    const saveData = await saveRes.json();
-    if (!saveData.success) throw new Error("Gagal menyimpan metadata link.");
-
-    progressBar.style.width = "100%";
-    uploadPercent.innerText = "100%";
-    overallProgressText.innerText = "Simpan link berhasil!";
-
-    const badge = document.querySelector(".status-badge");
-    if (badge) {
-      badge.innerText = "Selesai";
-      badge.className = "status-badge text-green-600 font-extrabold uppercase tracking-wider text-[8px]";
-    }
-  } catch (err) {
-    console.error("Gagal menyimpan remote link:", err);
-    progressBar.style.width = "100%";
-    overallProgressText.innerText = "Simpan link gagal.";
-    const badge = document.querySelector(".status-badge");
-    if (badge) {
-      badge.innerText = "Gagal";
-      badge.className = "status-badge text-red-500 font-extrabold uppercase tracking-wider text-[8px]";
-    }
-  }
-
-  setTimeout(() => {
-    uploadProgressContainer.classList.add("hidden");
-    remoteLinkInput.value = "";
-    remoteUrlToUpload = null;
-    currentFolder = folderName;
-    fetchMediaList();
-  }, 1200);
 }
 
 // Seamless batch upload logic with instantaneous execution and ZERO prompts
