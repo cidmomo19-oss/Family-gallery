@@ -5,6 +5,7 @@ const POKOCO_API_KEY = "Ipulapik999#";
 let mediaItems = [];
 let activeFilter = "all";
 let currentSelectedItem = null;
+let currentFolder = null;
 
 // Initialize Lucide Icons
 lucide.createIcons();
@@ -13,6 +14,7 @@ lucide.createIcons();
 const dropzone = document.getElementById("dropzone");
 const fileInput = document.getElementById("fileInput");
 
+const folderGrid = document.getElementById("folderGrid");
 const galleryGrid = document.getElementById("galleryGrid");
 const emptyState = document.getElementById("emptyState");
 const lightboxModal = document.getElementById("lightboxModal");
@@ -50,26 +52,141 @@ async function fetchMediaList() {
     const json = await res.json();
     if (json.success) {
       mediaItems = json.data;
-      renderGallery();
+      if (currentFolder) {
+        renderFolderGallery();
+      } else {
+        renderFolders();
+      }
     }
   } catch (err) {
     console.error("Gagal mengambil data galeri:", err);
   }
 }
 
-// Render Gallery Grid with high-fidelity, high-density square grids perfect for mobile viewports
-function renderGallery() {
-  const filtered = mediaItems.filter(item => {
-    return activeFilter === "all" ? true : item.media_type === activeFilter;
+// Render Folder Grid
+function renderFolders() {
+  const foldersMap = {};
+
+  mediaItems.forEach(item => {
+    const cat = item.category || "Umum";
+    if (!foldersMap[cat]) {
+      foldersMap[cat] = {
+        name: cat,
+        files: [],
+        lastUpdated: item.created_at || ""
+      };
+    }
+    foldersMap[cat].files.push(item);
+    if (item.created_at && (!foldersMap[cat].lastUpdated || item.created_at > foldersMap[cat].lastUpdated)) {
+      foldersMap[cat].lastUpdated = item.created_at;
+    }
   });
 
-  if (filtered.length === 0) {
-    galleryGrid.innerHTML = "";
+  const folders = Object.values(foldersMap);
+
+  if (folders.length === 0) {
+    folderGrid.classList.add("hidden");
+    galleryGrid.classList.add("hidden");
+    document.getElementById("filterContainer").classList.add("hidden");
+    document.getElementById("btnBackToFolders").classList.add("hidden");
     emptyState.classList.remove("hidden");
     return;
   }
 
   emptyState.classList.add("hidden");
+  folderGrid.classList.remove("hidden");
+  galleryGrid.classList.add("hidden");
+  document.getElementById("filterContainer").classList.add("hidden");
+  document.getElementById("btnBackToFolders").classList.add("hidden");
+  document.getElementById("galleryTitle").innerHTML = `
+    <i data-lucide="folder" class="w-3.5 h-3.5 text-violet-500"></i>
+    <span>Daftar Folder Bani Dumeri</span>
+  `;
+
+  folderGrid.innerHTML = folders.map(f => {
+    let dateStr = "Belum diketahui";
+    if (f.lastUpdated) {
+      try {
+        const d = new Date(f.lastUpdated.replace(" ", "T") + "Z");
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        dateStr = d.toLocaleDateString('id-ID', options);
+      } catch (e) {
+        dateStr = f.lastUpdated;
+      }
+    }
+
+    const previewImg = f.files.find(item => item.media_type === "image");
+    const previewHtml = previewImg
+      ? `<img src="${previewImg.view_url}" alt="${f.name}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`
+      : `<div class="w-full h-full bg-violet-50 text-violet-500 flex items-center justify-center">
+           <i data-lucide="folder" class="w-10 h-10"></i>
+         </div>`;
+
+    return `
+      <div onclick="selectFolder('${encodeURIComponent(f.name)}')" class="group premium-card overflow-hidden cursor-pointer hover:border-violet-300 active:scale-95 transition-all duration-250 flex flex-col">
+        <div class="aspect-[4/3] w-full bg-neutral-100 overflow-hidden relative border-b border-purple-100/50">
+          ${previewHtml}
+          <div class="absolute top-2 right-2 bg-neutral-900/60 px-2 py-0.5 rounded-lg text-[9px] font-bold text-white tracking-wide">
+            ${f.files.length} Item
+          </div>
+        </div>
+        <div class="p-3.5 flex-1 flex flex-col justify-between">
+          <h4 class="text-xs font-extrabold text-neutral-800 group-hover:text-violet-600 transition-colors line-clamp-1">${f.name}</h4>
+          <span class="text-[9px] text-neutral-400 font-semibold tracking-wide flex items-center gap-1 mt-1">
+            <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
+            ${dateStr}
+          </span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  lucide.createIcons();
+}
+
+// Select a folder to display
+window.selectFolder = (encodedName) => {
+  currentFolder = decodeURIComponent(encodedName);
+  renderFolderGallery();
+};
+
+// Render Media Grid inside a Folder
+function renderFolderGallery() {
+  if (!currentFolder) {
+    renderFolders();
+    return;
+  }
+
+  const folderFiles = mediaItems.filter(item => {
+    const cat = item.category || "Umum";
+    return cat === currentFolder;
+  });
+
+  const filtered = folderFiles.filter(item => {
+    return activeFilter === "all" ? true : item.media_type === activeFilter;
+  });
+
+  folderGrid.classList.add("hidden");
+  galleryGrid.classList.remove("hidden");
+  document.getElementById("filterContainer").classList.remove("hidden");
+  document.getElementById("btnBackToFolders").classList.remove("hidden");
+  emptyState.classList.add("hidden");
+
+  document.getElementById("galleryTitle").innerHTML = `
+    <i data-lucide="folder-open" class="w-3.5 h-3.5 text-violet-500"></i>
+    <span class="truncate max-w-[150px]">${currentFolder}</span>
+  `;
+
+  if (filtered.length === 0) {
+    galleryGrid.innerHTML = `
+      <div class="col-span-3 text-center py-12 text-neutral-400 font-semibold text-[10px]">
+        Tidak ada berkas dengan jenis filter ini.
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
   galleryGrid.innerHTML = filtered.map(item => `
     <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-purple-100/30">
       ${item.media_type === 'image'
@@ -81,7 +198,6 @@ function renderGallery() {
              </div>
            </div>`
       }
-      <!-- Quick Title Hover/Overlay -->
       <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5">
         <p class="text-white text-[9px] font-bold truncate tracking-wide">${item.title}</p>
       </div>
@@ -98,10 +214,18 @@ function setupEventListeners() {
   const btnCloseSettings = document.getElementById("btnCloseSettings");
   const btnSaveKey = document.getElementById("btnSaveKey");
   const apiKeyInput = document.getElementById("apiKeyInput");
+  const btnBackToFolders = document.getElementById("btnBackToFolders");
 
   if (btnCloseLightbox) btnCloseLightbox.onclick = () => lightboxModal.classList.add("hidden");
   if (btnSettings) btnSettings.onclick = () => settingsModal.classList.remove("hidden");
   if (btnCloseSettings) btnCloseSettings.onclick = () => settingsModal.classList.add("hidden");
+
+  if (btnBackToFolders) {
+    btnBackToFolders.onclick = () => {
+      currentFolder = null;
+      renderFolders();
+    };
+  }
 
   if (btnSaveKey && apiKeyInput) {
     btnSaveKey.onclick = () => {
@@ -121,13 +245,19 @@ function setupEventListeners() {
       btn.classList.remove("text-neutral-400", "hover:text-neutral-900");
       btn.classList.add("bg-white", "text-neutral-900", "shadow-sm");
       activeFilter = btn.dataset.cat;
-      renderGallery();
+      renderFolderGallery();
     };
   });
 
   // Direct Mobile-friendly Dropzone File Selection trigger (opens native OS selector instantly)
   if (dropzone) {
     dropzone.onclick = () => {
+      const folderVal = document.getElementById("folderNameInput").value.trim();
+      if (!folderVal) {
+        alert("Silakan isi Nama Folder Penyimpanan terlebih dahulu!");
+        document.getElementById("folderNameInput").focus();
+        return;
+      }
       fileInput.click();
     };
 
@@ -145,24 +275,38 @@ function setupEventListeners() {
       e.preventDefault();
       dropzone.classList.remove("border-violet-400", "bg-violet-50/20");
 
+      const folderVal = document.getElementById("folderNameInput").value.trim();
+      if (!folderVal) {
+        alert("Silakan isi Nama Folder Penyimpanan terlebih dahulu!");
+        document.getElementById("folderNameInput").focus();
+        return;
+      }
+
       if (e.dataTransfer.files.length > 0) {
-        handleBatchUpload(Array.from(e.dataTransfer.files));
+        handleBatchUpload(Array.from(e.dataTransfer.files), folderVal);
       }
     };
   }
 
-  // File input changes trigger upload instantly with zero prompts
+  // File input changes trigger upload instantly
   if (fileInput) {
     fileInput.onchange = (e) => {
+      const folderVal = document.getElementById("folderNameInput").value.trim();
+      if (!folderVal) {
+        alert("Silakan isi Nama Folder Penyimpanan terlebih dahulu!");
+        document.getElementById("folderNameInput").focus();
+        fileInput.value = "";
+        return;
+      }
       if (e.target.files.length > 0) {
-        handleBatchUpload(Array.from(e.target.files));
+        handleBatchUpload(Array.from(e.target.files), folderVal);
       }
     };
   }
 }
 
 // Seamless batch upload logic with instantaneous execution and ZERO prompts
-async function handleBatchUpload(files) {
+async function handleBatchUpload(files, folderName) {
   if (files.length === 0) return;
 
   const currentKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
@@ -241,14 +385,14 @@ async function handleBatchUpload(files) {
         xhr.send(file);
       });
 
-      // Step 3: Simpan Metadata ke D1 Database (Simplified database insertion)
+      // Step 3: Simpan Metadata ke D1 Database
       const saveRes = await fetch("/api/media", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: autoTitle,
-          description: "", // No description
-          category: "Umum", // Default category
+          description: "",
+          category: folderName,
           media_type: mediaType,
           r2_key: initData.id,
           view_url: initData.viewUrl,
@@ -283,6 +427,8 @@ async function handleBatchUpload(files) {
   setTimeout(() => {
     uploadProgressContainer.classList.add("hidden");
     fileInput.value = "";
+    document.getElementById("folderNameInput").value = "";
+    currentFolder = folderName;
     fetchMediaList();
   }, 1200);
 }

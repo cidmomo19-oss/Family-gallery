@@ -96,6 +96,15 @@
         </p>
       </div>
 
+      <!-- Folder Creation & Input Input - MANDATORY -->
+      <div class="space-y-2">
+        <label class="block text-[10px] font-extrabold text-neutral-500 uppercase tracking-widest">
+          Nama Folder Penyimpanan <span class="text-rose-500">* Wajib</span>
+        </label>
+        <input type="text" id="folderNameInput" placeholder="Masukkan nama folder (Contoh: Liburan Jogja 2026)"
+          class="w-full px-4 py-3 bg-white border border-purple-100 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-violet-400/20 focus:border-violet-500 text-neutral-800 placeholder-neutral-400 font-medium transition-all shadow-sm">
+      </div>
+
       <!-- Gorgeous Solid Direct Action Trigger Card -->
       <div id="dropzone" class="premium-card p-10 sm:p-12 hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-purple-100/40 active:scale-[0.98] relative overflow-hidden group">
         <!-- Completely hidden native multiple file input -->
@@ -131,24 +140,35 @@
       </div>
     </section>
 
-    <!-- SCREEN 2 (Scroll down): Solid styled Media Gallery -->
+    <!-- SCREEN 2 (Scroll down): Folder-based Media Gallery -->
     <section class="px-5 py-12 border-t border-purple-100/40 space-y-6">
       <div class="flex items-center justify-between border-b border-purple-100/40 pb-4">
-        <h3 class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
-          <i data-lucide="archive" class="w-3.5 h-3.5 text-violet-500"></i>
-          Arsip Tersimpan
-        </h3>
+        <div class="flex items-center gap-2">
+          <button id="btnBackToFolders" class="hidden text-violet-600 hover:text-violet-800 p-1.5 hover:bg-violet-50 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>Kembali</span>
+          </button>
+          <h3 id="galleryTitle" class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
+            <i data-lucide="folder" class="w-3.5 h-3.5 text-violet-500"></i>
+            <span>Daftar Folder Bani Dumeri</span>
+          </h3>
+        </div>
 
-        <!-- Filter Toggle -->
-        <div class="flex bg-neutral-100 p-0.5 rounded-xl border border-neutral-200/20">
+        <!-- Filter Toggle (Only visible inside folder view) -->
+        <div id="filterContainer" class="hidden bg-neutral-100 p-0.5 rounded-xl border border-neutral-200/20">
           <button data-cat="all" class="sub-cat-btn active px-3 py-1 rounded-lg text-[10px] font-bold bg-white text-neutral-900 shadow-sm transition-all duration-200">Semua</button>
           <button data-cat="image" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Foto</button>
           <button data-cat="video" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Video</button>
         </div>
       </div>
 
-      <!-- Gallery Grid -->
-      <div id="galleryGrid" class="grid grid-cols-3 gap-2.5">
+      <!-- Main Directory: Folder Grid -->
+      <div id="folderGrid" class="grid grid-cols-2 gap-4">
+        <!-- Folder widgets rendered dynamically -->
+      </div>
+
+      <!-- Nested Media Grid (Hidden initially until folder clicked) -->
+      <div id="galleryGrid" class="hidden grid grid-cols-3 gap-2.5">
         <!-- Media tiles with subtle clean lines -->
       </div>
 
@@ -157,28 +177,28 @@
         <div class="p-3 bg-violet-50 text-violet-500 rounded-full inline-block mb-3 border border-violet-100/30">
           <i data-lucide="hard-drive-upload" class="w-5 h-5"></i>
         </div>
-        <h4 class="text-xs font-bold text-neutral-800">Penyimpanan Kosong</h4>
-        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Mulai simpan kenangan pertama keluarga dengan mengklik tombol di atas.</p>
+        <h4 class="text-xs font-bold text-neutral-800">Belum ada Folder</h4>
+        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Masukkan nama folder dan pilih berkas di atas untuk membuat folder pertama kamu.</p>
       </div>
     </section>
 
     <!-- SCREEN 3 (Scroll down further): Saas landing style Advantages section -->
     <section class="px-5 py-12 border-t border-purple-100/40 space-y-6 bg-white/50">
       <div class="text-center space-y-1.5 pb-4">
-        <span class="text-[9px] font-bold text-violet-600 uppercase tracking-widest">Fitur Unggulan</span>
-        <h3 class="text-base font-extrabold text-neutral-900 tracking-tight">Mengapa Menggunakan Kubah Bani Dumeri?</h3>
-        <p class="text-[10px] text-neutral-400 font-semibold max-w-xs mx-auto">Kami merancang penyimpanan ini khusus untuk kebutuhan dan kenyamanan keluarga.</p>
+        <span class="text-[9px] font-bold text-violet-600 uppercase tracking-widest">Fitur & Keunggulan Unggulan</span>
+        <h3 class="text-base font-extrabold text-neutral-900 tracking-tight">Kelebihan Eksklusif Kubah Bani Dumeri</h3>
+        <p class="text-[10px] text-neutral-400 font-semibold max-w-xs mx-auto">Dirancang secara eksklusif dengan teknologi cloud canggih demi kenyamanan dan perlindungan memori keluarga kita.</p>
       </div>
 
-      <!-- High-End SaaS Product Landing Cards -->
+      <!-- High-End SaaS Product Landing Cards (Rich gimmicks) -->
       <div class="grid grid-cols-1 gap-4">
         <div class="premium-card p-5 flex items-start gap-4 border border-purple-100/30">
           <div class="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center shadow-sm shrink-0">
             <i data-lucide="zap" class="w-5 h-5"></i>
           </div>
           <div>
-            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Server Cepat</h4>
-            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Didukung infrastruktur modern R2 Cloudflare untuk menjamin kecepatan unggah berkas tanpa hambatan.</p>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Server Multi-Region Cepat</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Didukung infrastruktur modern R2 Cloudflare untuk menjamin kecepatan unggah berkas instan multi-thread tanpa hambatan.</p>
           </div>
         </div>
 
@@ -187,8 +207,8 @@
             <i data-lucide="shield-check" class="w-5 h-5"></i>
           </div>
           <div>
-            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Penyimpanan Permanen</h4>
-            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Semua kenangan keluarga tersimpan abadi dan aman dalam jaringan awan privat terlindungi.</p>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Penyimpanan Permanen Selamanya</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Kenangan kamu aman di jaringan cloud terdistribusi, dijamin tidak akan pernah hilang walaupun file di HP terhapus.</p>
           </div>
         </div>
 
@@ -197,8 +217,29 @@
             <i data-lucide="download-cloud" class="w-5 h-5"></i>
           </div>
           <div>
-            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Bisa Didownload</h4>
-            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Unduh kembali berkas asli kapan pun kamu membutuhkannya hanya dengan satu kali ketuk.</p>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Unduh Berkas Asli Instan</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Kembalikan foto dan video berkualitas tinggi ukuran penuh kapan saja langsung ke galeri hanya dengan satu kali klik.</p>
+          </div>
+        </div>
+
+        <!-- Additional Gimmicks requested by user -->
+        <div class="premium-card p-5 flex items-start gap-4 border border-purple-100/30">
+          <div class="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center shadow-sm shrink-0">
+            <i data-lucide="image" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Kompresi Cerdas Lossless</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Sistem kompresi cerdas menghemat bandwidth tanpa menurunkan kualitas visual sedikit pun dari foto asli keluarga Anda.</p>
+          </div>
+        </div>
+
+        <div class="premium-card p-5 flex items-start gap-4 border border-purple-100/30">
+          <div class="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center shadow-sm shrink-0">
+            <i data-lucide="folder-git" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Folder & Tanggal Presisi</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Mencatat dengan detail hari, tanggal, bulan, dan tahun unggah untuk mempermudah Anda berselancar di mesin waktu kenangan keluarga.</p>
           </div>
         </div>
       </div>
