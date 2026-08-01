@@ -71,7 +71,7 @@ function renderGallery() {
 
   emptyState.classList.add("hidden");
   galleryGrid.innerHTML = filtered.map(item => `
-    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-2xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-purple-100/30">
+    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-purple-100/30">
       ${item.media_type === 'image'
         ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover">`
         : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>

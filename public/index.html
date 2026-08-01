@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kubah Memori — Ruang Simpan Keluarga</title>
+  <title>Bani Dumeri — Ruang Simpan Keluarga</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -79,11 +79,11 @@
       <div class="flex items-center gap-3">
         <!-- Colorful Gradient Logo Container -->
         <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/10">
-          <i data-lucide="folder-heart" class="w-4.5 h-4.5"></i>
+          <i data-lucide="cloud" class="w-4.5 h-4.5"></i>
         </div>
         <div>
           <h1 class="text-xs font-extrabold tracking-tight text-neutral-900 flex items-center gap-1 bg-gradient-to-r from-violet-700 to-fuchsia-600 bg-clip-text text-transparent">
-            Kubah Memori
+            Bani Dumeri
           </h1>
           <p class="text-[9px] font-bold text-neutral-400 tracking-wider uppercase -mt-0.5">Penyimpanan Keluarga</p>
         </div>
@@ -101,13 +101,13 @@
 
     <!-- Top Area: Professional Headline & Direct Mobile File Picker Trigger -->
     <section class="space-y-5">
-      <div class="space-y-1.5 text-center">
+      <div class="space-y-2 text-center">
         <!-- High Contrast Elegant Headline -->
         <h2 class="text-lg font-extrabold text-neutral-900 tracking-tight leading-snug">
-          Penyimpanan Kenangan Instan
+          Simpan foto dan video di sini selamanya walaupun file asli sudah dihapus dari penyimpanan hp.
         </h2>
         <p class="text-xs text-neutral-400 font-medium max-w-sm mx-auto leading-relaxed">
-          Unggah banyak foto & video sekaligus tanpa repot. Langsung masuk ke arsip pribadi keluarga kita.
+          Arsip digital eksklusif keluarga Bani Dumeri. Cepat, aman, dan tanpa repot.
         </p>
       </div>
 
@@ -126,6 +126,31 @@
           </div>
           <span class="text-xs font-bold text-neutral-900 tracking-tight">Pilih Foto & Video</span>
           <span class="text-[10px] text-neutral-400 mt-1 font-semibold">Buka file manager atau galeri HP langsung</span>
+        </div>
+      </div>
+
+      <!-- Features Highlight Grid (Professional Copy requested by user) -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="premium-card p-4 text-center flex flex-col items-center justify-center border border-purple-100/30">
+          <div class="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-2 shadow-sm">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-[10px] font-extrabold text-neutral-900 tracking-tight">Server Cepat</h3>
+          <p class="text-[9px] text-neutral-400 font-medium mt-0.5 leading-tight">Unggah instan</p>
+        </div>
+        <div class="premium-card p-4 text-center flex flex-col items-center justify-center border border-purple-100/30">
+          <div class="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-2 shadow-sm">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-[10px] font-extrabold text-neutral-900 tracking-tight">Permanen</h3>
+          <p class="text-[9px] text-neutral-400 font-medium mt-0.5 leading-tight">Simpan abadi</p>
+        </div>
+        <div class="premium-card p-4 text-center flex flex-col items-center justify-center border border-purple-100/30">
+          <div class="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-2 shadow-sm">
+            <i data-lucide="download-cloud" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-[10px] font-extrabold text-neutral-900 tracking-tight">Bisa Didownload</h3>
+          <p class="text-[9px] text-neutral-400 font-medium mt-0.5 leading-tight">Satu kali ketuk</p>
         </div>
       </div>
 
@@ -199,8 +224,8 @@
     </div>
   </div>
 
-  <!-- Ultra-clean Full Screen Lightbox -->
-  <div id="lightboxModal" class="fixed inset-0 bg-neutral-950/98 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+  <!-- Ultra-clean Full Screen Lightbox with high-end glassmorphism overlay -->
+  <div id="lightboxModal" class="fixed inset-0 bg-neutral-950/40 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
     <button id="btnCloseLightbox" class="absolute top-5 right-5 text-neutral-400 hover:text-white p-2 rounded-full bg-neutral-900/20 hover:bg-neutral-900/60 transition duration-150 z-50">
       <i data-lucide="x" class="w-5 h-5"></i>
     </button>
@@ -210,8 +235,8 @@
         <!-- Dynamically rendered -->
       </div>
 
-      <!-- Minimal Floating Action Bar inside Lightbox -->
-      <div class="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl shadow-xl">
+      <!-- Minimal Floating Action Bar inside Lightbox with glass effect -->
+      <div class="flex items-center gap-3 bg-white/20 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-xl shadow-xl">
         <span id="lightboxTitle" class="text-[10px] font-bold text-white tracking-tight truncate max-w-[150px] mr-2"></span>
         <a id="lightboxDownloadBtn" target="_blank" class="premium-btn flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-900 rounded-lg text-[10px] font-bold transition shadow-sm">
           <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
@@ -225,7 +250,7 @@
 
   <!-- Subtle Footer -->
   <footer class="py-6 text-center text-[9px] text-neutral-400 font-bold uppercase tracking-widest bg-slate-50 border-t border-purple-100/40 mt-auto">
-    Kubah Memori &copy; <span id="currentYear">2026</span> &bull; Penyimpanan Keluarga
+    Bani Dumeri &copy; <span id="currentYear">2026</span> &bull; Penyimpanan Keluarga
   </footer>
 
   <script src="app.js"></script>
