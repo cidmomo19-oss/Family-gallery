@@ -1,0 +1,8 @@
+name = "family-album"
+pages_build_output_dir = "public"
+
+# Binding D1 Database (Database ID diisi setelah langkah pembuatan D1 di Cloudflare)
+[[d1_databases]]
+binding = "DB"
+database_name = "family-album-db"
+database_id = "PASTE_DATABASE_ID_KAMU_DISINI"
