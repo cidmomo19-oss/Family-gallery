@@ -1,4 +1,7 @@
 const POKOCO_BASE_URL = "https://pokoco-co.pages.dev";
+// 🔑 MASUKKAN API KEY KAMU DI SINI (PASTE DI DALAM TANDA PETIK)
+const POKOCO_API_KEY = "Ipulapik999#";
+
 let mediaItems = [];
 let activeFilter = "all";
 let currentSelectedItem = null;
@@ -10,27 +13,15 @@ lucide.createIcons();
 const galleryGrid = document.getElementById("galleryGrid");
 const emptyState = document.getElementById("emptyState");
 const uploadModal = document.getElementById("uploadModal");
-const settingsModal = document.getElementById("settingsModal");
 const lightboxModal = document.getElementById("lightboxModal");
 const uploadForm = document.getElementById("uploadForm");
-const apiKeyInput = document.getElementById("apiKeyInput");
 const searchInput = document.getElementById("searchInput");
 
 // App Init
 document.addEventListener("DOMContentLoaded", () => {
-  apiKeyInput.value = localStorage.getItem("pokoco_api_key") || "";
   fetchMediaList();
   setupEventListeners();
 });
-
-function getApiKey() {
-  const key = localStorage.getItem("pokoco_api_key");
-  if (!key) {
-    settingsModal.classList.remove("hidden");
-    alert("Harap masukkan X-API-Key terlebih dahulu!");
-  }
-  return key;
-}
 
 // Fetch List dari D1
 async function fetchMediaList() {
@@ -48,7 +39,7 @@ async function fetchMediaList() {
 
 // Render Gallery Grid
 function renderGallery() {
-  const searchTerm = searchInput.value.toLowerCase();
+  const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
   
   const filtered = mediaItems.filter(item => {
     const matchSearch = item.title.toLowerCase().includes(searchTerm) || 
@@ -71,7 +62,7 @@ function renderGallery() {
           ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">`
           : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
              <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-               <div class="p-3 bg-brand-600/90 rounded-full text-white shadow-lg">
+               <div class="p-3 bg-rose-600/90 rounded-full text-white shadow-lg">
                  <i data-lucide="play" class="w-6 h-6 fill-current"></i>
                </div>
              </div>`
@@ -82,7 +73,7 @@ function renderGallery() {
       </div>
       <div class="p-4 flex-1 flex flex-col justify-between">
         <div>
-          <h3 class="font-bold text-slate-100 group-hover:text-brand-400 transition line-clamp-1">${item.title}</h3>
+          <h3 class="font-bold text-slate-100 group-hover:text-rose-400 transition line-clamp-1">${item.title}</h3>
           <p class="text-slate-400 text-xs mt-1 line-clamp-2">${item.description || 'Tidak ada deskripsi'}</p>
         </div>
         <div class="mt-4 pt-3 border-t border-slate-800/80 flex justify-between items-center text-xs text-slate-500">
@@ -98,41 +89,32 @@ function renderGallery() {
 
 // Handlers & Event Listeners
 function setupEventListeners() {
-  // Modal Toggles
-  document.getElementById("btnOpenUpload").onclick = () => {
-    if (getApiKey()) uploadModal.classList.remove("hidden");
-  };
-  document.getElementById("btnCloseUpload").onclick = () => uploadModal.classList.add("hidden");
-  document.getElementById("btnSettings").onclick = () => settingsModal.classList.remove("hidden");
-  document.getElementById("btnCloseLightbox").onclick = () => lightboxModal.classList.add("hidden");
+  const btnOpenUpload = document.getElementById("btnOpenUpload");
+  const btnCloseUpload = document.getElementById("btnCloseUpload");
+  const btnCloseLightbox = document.getElementById("btnCloseLightbox");
 
-  // Save Settings
-  document.getElementById("btnSaveKey").onclick = () => {
-    localStorage.setItem("pokoco_api_key", apiKeyInput.value.trim());
-    settingsModal.classList.add("hidden");
-    alert("API Key berhasil disimpan!");
-  };
+  if (btnOpenUpload) btnOpenUpload.onclick = () => uploadModal.classList.remove("hidden");
+  if (btnCloseUpload) btnCloseUpload.onclick = () => uploadModal.classList.add("hidden");
+  if (btnCloseLightbox) btnCloseLightbox.onclick = () => lightboxModal.classList.add("hidden");
 
   // Search & Filter
-  searchInput.oninput = () => renderGallery();
+  if (searchInput) searchInput.oninput = () => renderGallery();
   document.querySelectorAll(".cat-btn").forEach(btn => {
-    btn.onclick = (e) => {
+    btn.onclick = () => {
       document.querySelectorAll(".cat-btn").forEach(b => {
-        b.classList.remove("bg-brand-600", "text-white");
+        b.classList.remove("bg-rose-600", "text-white");
         b.classList.add("bg-slate-900", "text-slate-400");
       });
       btn.classList.remove("bg-slate-900", "text-slate-400");
-      btn.classList.add("bg-brand-600", "text-white");
+      btn.classList.add("bg-rose-600", "text-white");
       activeFilter = btn.dataset.cat;
       renderGallery();
     };
   });
 
-  // Handle Form Upload (Alur Presigned Pokoco API)
+  // Handle Form Upload
   uploadForm.onsubmit = async (e) => {
     e.preventDefault();
-    const apiKey = getApiKey();
-    if (!apiKey) return;
 
     const fileInput = document.getElementById("fileInput");
     const file = fileInput.files[0];
@@ -159,7 +141,7 @@ function setupEventListeners() {
       const initRes = await fetch(`${POKOCO_BASE_URL}/api/upload`, {
         method: "POST",
         headers: {
-          "X-API-Key": apiKey,
+          "X-API-Key": POKOCO_API_KEY,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -170,10 +152,10 @@ function setupEventListeners() {
       });
 
       const initData = await initRes.json();
-      if (!initData.success) throw new Error("Gagal mendapatkan Upload URL Pokoco.");
+      if (!initData.success) throw new Error("Gagal mengontak Pokoco API. Cek API Key di app.js");
 
       // Step 2: PUT File Mentah ke uploadUrl Presigned Pokoco
-      uploadStatusText.innerText = "Mengirim file ke R2 Storage...";
+      uploadStatusText.innerText = "Mengirim file...";
       
       await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -189,9 +171,9 @@ function setupEventListeners() {
 
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else reject(new Error("Gagal melakukan upload ke R2 Storage"));
+          else reject(new Error("Gagal upload file ke Pokoco Storage"));
         };
-        xhr.onerror = () => reject(new Error("Network Error saat Upload."));
+        xhr.onerror = () => reject(new Error("Koneksi terputus saat upload."));
         xhr.send(file);
       });
 
@@ -213,7 +195,7 @@ function setupEventListeners() {
       });
 
       const saveData = await saveRes.json();
-      if (!saveData.success) throw new Error("Gagal menyimpan metadata ke Database D1.");
+      if (!saveData.success) throw new Error("Gagal menyimpan ke Database D1.");
 
       // Success
       uploadModal.classList.add("hidden");
@@ -259,15 +241,12 @@ window.openLightbox = (id) => {
 
 // Hapus Media
 async function deleteMedia(id) {
-  const apiKey = getApiKey();
-  if (!apiKey) return;
-
   if (!confirm("Apakah kamu yakin ingin menghapus kenangan ini?")) return;
 
   try {
     const res = await fetch(`/api/media/${id}`, {
       method: "DELETE",
-      headers: { "X-API-Key": apiKey }
+      headers: { "X-API-Key": POKOCO_API_KEY }
     });
 
     const json = await res.json();
