@@ -98,7 +98,7 @@ async function fetchMediaList() {
     const json = await res.json();
     if (json.success) {
       mediaItems = json.data;
-      setupFlashbackWidget();
+      calculateAndRenderStats();
       if (currentFolder) {
         renderFolderGallery();
       } else {
@@ -110,124 +110,62 @@ async function fetchMediaList() {
   }
 }
 
-// Kilas Balik Memori (Flashback Widget Setup)
-let flashbackItems = [];
-let flashbackIntervalId = null;
+// Calculate and render dynamic family storage stats
+function calculateAndRenderStats() {
+  const statsWidget = document.getElementById("statsWidget");
+  const statsPhotoCount = document.getElementById("statsPhotoCount");
+  const statsVideoCount = document.getElementById("statsVideoCount");
+  const statsStorageSize = document.getElementById("statsStorageSize");
+  const statsRatioText = document.getElementById("statsRatioText");
+  const statsPhotoBar = document.getElementById("statsPhotoBar");
+  const statsVideoBar = document.getElementById("statsVideoBar");
 
-function getRandomFlashbackItems(count = 3) {
-  if (mediaItems.length === 0) return [];
-
-  // Shuffle array and pick first N unique category items if possible, or just unique items
-  const shuffled = [...mediaItems].sort(() => 0.5 - Math.random());
-  const selected = [];
-  const categoriesSeen = new Set();
-
-  // Try to pick unique folders/categories first to make it diverse
-  for (const item of shuffled) {
-    const cat = item.category || "Umum";
-    if (!categoriesSeen.has(cat)) {
-      selected.push(item);
-      categoriesSeen.add(cat);
-      if (selected.length === count) break;
-    }
-  }
-
-  // Fallback: fill remaining if unique categories are fewer than requested count
-  if (selected.length < count) {
-    for (const item of shuffled) {
-      if (!selected.some(s => s.id === item.id)) {
-        selected.push(item);
-        if (selected.length === count) break;
-      }
-    }
-  }
-
-  return selected;
-}
-
-function setupFlashbackWidget() {
-  const widget = document.getElementById("flashbackWidget");
-  const listContainer = document.getElementById("flashbackList");
-
-  if (!widget || !listContainer) return;
-
-  if (mediaItems.length === 0) {
-    widget.classList.add("hidden");
+  if (!statsWidget || mediaItems.length === 0) {
+    if (statsWidget) statsWidget.classList.add("hidden");
     return;
   }
 
-  // Initialize first set of flashback items
-  if (flashbackItems.length === 0) {
-    flashbackItems = getRandomFlashbackItems(3);
-  }
+  statsWidget.classList.remove("hidden");
 
-  renderFlashbackList();
+  let photoCount = 0;
+  let videoCount = 0;
+  let totalBytes = 0;
 
-  // Setup smooth auto-rotation every 6 seconds without refresh
-  if (flashbackIntervalId) clearInterval(flashbackIntervalId);
-  flashbackIntervalId = setInterval(() => {
-    // Fade out smoothly
-    listContainer.classList.add("opacity-0", "translate-y-1");
-
-    setTimeout(() => {
-      // Pick new set of random items and render
-      flashbackItems = getRandomFlashbackItems(3);
-      renderFlashbackList();
-
-      // Fade in smoothly
-      listContainer.classList.remove("opacity-0", "translate-y-1");
-    }, 400); // Wait for fade-out transition
-  }, 6000);
-}
-
-function renderFlashbackList() {
-  const listContainer = document.getElementById("flashbackList");
-  if (!listContainer || flashbackItems.length === 0) return;
-
-  listContainer.innerHTML = flashbackItems.map(item => {
-    const folderName = item.category || "Umum";
-    let mediaHtml = "";
-
+  mediaItems.forEach(item => {
     if (item.media_type === "image") {
-      mediaHtml = `<img src="${item.view_url}" alt="${folderName}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
-    } else {
-      mediaHtml = `
-        <video src="${item.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="none"></video>
-        <div class="absolute inset-0 bg-black/15 flex items-center justify-center">
-          <div class="w-6 h-6 bg-white/90 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
-            <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
-          </div>
-        </div>
-      `;
+      photoCount++;
+    } else if (item.media_type === "video") {
+      videoCount++;
     }
+    totalBytes += (item.file_size || 0);
+  });
 
-    return `
-      <div onclick="navigateToFolder('${encodeURIComponent(folderName)}')" class="group cursor-pointer flex flex-col items-center text-center space-y-1.5 active:scale-95 transition-all duration-200">
-        <div class="aspect-square w-full rounded-2xl bg-neutral-100 overflow-hidden relative border border-purple-100/50 shadow-sm">
-          ${mediaHtml}
-        </div>
-        <div class="flex items-center gap-1 max-w-full px-1">
-          <i data-lucide="folder" class="w-3 h-3 text-neutral-400 shrink-0"></i>
-          <span class="text-[9px] font-bold text-neutral-700 truncate">${folderName}</span>
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  lucide.createIcons();
-}
-
-// Navigate straight to the specific folder view
-window.navigateToFolder = (encodedFolderName) => {
-  const folderName = decodeURIComponent(encodedFolderName);
-  selectFolder(encodedFolderName);
-
-  // Smooth scroll down to Screen 2
-  const folderHeader = document.getElementById("galleryTitle");
-  if (folderHeader) {
-    folderHeader.scrollIntoView({ behavior: 'smooth' });
+  // Calculate formatted storage size
+  let formattedSize = "0 MB";
+  if (totalBytes > 0) {
+    const mb = totalBytes / (1024 * 1024);
+    if (mb >= 1024) {
+      formattedSize = `${(mb / 1024).toFixed(1)} GB`;
+    } else {
+      formattedSize = `${mb.toFixed(1)} MB`;
+    }
   }
-};
+
+  // Calculate percentages
+  const totalItems = photoCount + videoCount;
+  const photoPercent = totalItems > 0 ? Math.round((photoCount / totalItems) * 100) : 0;
+  const videoPercent = totalItems > 0 ? Math.round((videoCount / totalItems) * 100) : 0;
+
+  // Render text
+  if (statsPhotoCount) statsPhotoCount.innerText = `${photoCount} Foto`;
+  if (statsVideoCount) statsVideoCount.innerText = `${videoCount} Video`;
+  if (statsStorageSize) statsStorageSize.innerText = formattedSize;
+  if (statsRatioText) statsRatioText.innerText = `${photoPercent}% Foto / ${videoPercent}% Video`;
+
+  // Render animated bars
+  if (statsPhotoBar) statsPhotoBar.style.width = `${photoPercent}%`;
+  if (statsVideoBar) statsVideoBar.style.width = `${videoPercent}%`;
+}
 
 // Render Folder Grid
 function renderFolders() {
@@ -241,9 +179,9 @@ function renderFolders() {
     advantagesSection.classList.remove("hidden");
   }
 
-  const widget = document.getElementById("flashbackWidget");
-  if (widget && mediaItems.length > 0) {
-    widget.classList.remove("hidden");
+  const statsWidget = document.getElementById("statsWidget");
+  if (statsWidget && mediaItems.length > 0) {
+    statsWidget.classList.remove("hidden");
   }
 
   const searchContainer = document.getElementById("searchFolderContainer");
@@ -391,6 +329,11 @@ function renderFolderGallery() {
     advantagesSection.classList.add("hidden");
   }
 
+  const statsWidget = document.getElementById("statsWidget");
+  if (statsWidget) {
+    statsWidget.classList.add("hidden");
+  }
+
   const folderFiles = mediaItems.filter(item => {
     const cat = item.category || "Umum";
     return cat === currentFolder;
@@ -400,10 +343,6 @@ function renderFolderGallery() {
     return activeFilter === "all" ? true : item.media_type === activeFilter;
   });
 
-  const widget = document.getElementById("flashbackWidget");
-  if (widget) {
-    widget.classList.add("hidden");
-  }
 
   const searchContainer = document.getElementById("searchFolderContainer");
   if (searchContainer) {
@@ -462,6 +401,22 @@ function setupEventListeners() {
   const btnBackToFolders = document.getElementById("btnBackToFolders");
   const btnShareFolder = document.getElementById("btnShareFolder");
   const searchFolderInput = document.getElementById("searchFolderInput");
+  const btnToggleStats = document.getElementById("btnToggleStats");
+  const statsContent = document.getElementById("statsContent");
+  const statsChevron = document.getElementById("statsChevron");
+
+  if (btnToggleStats && statsContent && statsChevron) {
+    btnToggleStats.onclick = () => {
+      const isHidden = statsContent.classList.contains("hidden");
+      if (isHidden) {
+        statsContent.classList.remove("hidden");
+        statsChevron.classList.add("rotate-180");
+      } else {
+        statsContent.classList.add("hidden");
+        statsChevron.classList.remove("rotate-180");
+      }
+    };
+  }
 
   if (searchFolderInput) {
     searchFolderInput.oninput = (e) => {
@@ -735,8 +690,126 @@ async function handleBatchUpload(files, folderName) {
   }, 1200);
 }
 
+// Smart Fullscreen Slideshow Mode
+function startSlideshow() {
+  if (!currentFolder) return;
+
+  slideshowItems = mediaItems.filter(item => {
+    const cat = item.category || "Umum";
+    return cat === currentFolder;
+  });
+
+  if (slideshowItems.length === 0) {
+    alert("Folder kosong, tidak bisa memulai slideshow!");
+    return;
+  }
+
+  isSlideshowActive = true;
+  isSlideshowPlaying = true;
+  slideshowIndex = 0;
+
+  const controls = document.getElementById("slideshowControls");
+  if (controls) controls.classList.remove("hidden");
+
+  updatePlayPauseSlideIcon();
+  playSlide(slideshowIndex);
+}
+
+function stopSlideshow() {
+  isSlideshowActive = false;
+  isSlideshowPlaying = false;
+  if (slideshowTimer) {
+    clearTimeout(slideshowTimer);
+    slideshowTimer = null;
+  }
+  const controls = document.getElementById("slideshowControls");
+  if (controls) controls.classList.add("hidden");
+}
+
+function playSlide(index) {
+  if (index < 0) index = slideshowItems.length - 1;
+  if (index >= slideshowItems.length) index = 0;
+  slideshowIndex = index;
+
+  const item = slideshowItems[slideshowIndex];
+  if (!item) return;
+
+  // Render on screen
+  openLightbox(item.id, true);
+
+  if (slideshowTimer) {
+    clearTimeout(slideshowTimer);
+    slideshowTimer = null;
+  }
+
+  if (!isSlideshowPlaying) return;
+
+  if (item.media_type === "image") {
+    // 4 seconds transition for photos
+    slideshowTimer = setTimeout(() => {
+      nextSlide();
+    }, 4000);
+  } else {
+    // For videos, automatically advance ONLY when video ends
+    const videoEl = document.querySelector("#lightboxContent video");
+    if (videoEl) {
+      videoEl.onended = () => {
+        if (isSlideshowPlaying && isSlideshowActive) {
+          nextSlide();
+        }
+      };
+    } else {
+      // Fallback if video element not found immediately
+      slideshowTimer = setTimeout(() => {
+        nextSlide();
+      }, 5000);
+    }
+  }
+}
+
+function nextSlide() {
+  playSlide(slideshowIndex + 1);
+}
+
+function prevSlide() {
+  playSlide(slideshowIndex - 1);
+}
+
+function togglePlayPauseSlide() {
+  isSlideshowPlaying = !isSlideshowPlaying;
+  updatePlayPauseSlideIcon();
+
+  if (isSlideshowPlaying) {
+    playSlide(slideshowIndex);
+  } else {
+    if (slideshowTimer) {
+      clearTimeout(slideshowTimer);
+      slideshowTimer = null;
+    }
+    // Pause active video play if any
+    const videoEl = document.querySelector("#lightboxContent video");
+    if (videoEl) videoEl.pause();
+  }
+}
+
+function updatePlayPauseSlideIcon() {
+  const icon = document.getElementById("playPauseSlideIcon");
+  if (!icon) return;
+  if (isSlideshowPlaying) {
+    icon.setAttribute("data-lucide", "pause");
+  } else {
+    icon.setAttribute("data-lucide", "play");
+  }
+  lucide.createIcons();
+}
+
 // Lightbox Detail Viewer
-window.openLightbox = (id) => {
+window.openLightbox = (id, fromSlideshow = false) => {
+  // If manual open, stop active slideshow
+  if (!fromSlideshow && isSlideshowActive) {
+    stopSlideshow();
+  }
+
   const item = mediaItems.find(i => i.id === id);
   if (!item) return;
 
