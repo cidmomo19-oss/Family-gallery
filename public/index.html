@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeri Album Keluarga</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#fff1f2', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Navbar -->
+  <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-brand-500/10 rounded-xl text-brand-500">
+          <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+        </div>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-rose-400 to-amber-300 bg-clip-text text-transparent">
+          Album Keluarga
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btnSettings" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="key" class="w-5 h-5"></i>
+        </button>
+        <button id="btnOpenUpload" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl font-medium shadow-lg shadow-brand-600/20 transition">
+          <i data-lucide="plus-circle" class="w-5 h-5"></i>
+          <span>Tambah Kenangan</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+    
+    <!-- Filter & Search Bar -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+      <!-- Search Input -->
+      <div class="relative w-full md:w-80">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" id="searchInput" placeholder="Cari foto atau video..." 
+          class="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-brand-500 text-slate-200">
+      </div>
+
+      <!-- Categories -->
+      <div id="categoryFilters" class="flex flex-wrap gap-2 w-full md:w-auto">
+        <button data-cat="all" class="cat-btn active px-4 py-1.5 rounded-xl text-sm font-medium bg-brand-600 text-white">Semua</button>
+        <button data-cat="image" class="cat-btn px-4 py-1.5 rounded-xl text-sm font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800">📷 Foto</button>
+        <button data-cat="video" class="cat-btn px-4 py-1.5 rounded-xl text-sm font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800">🎥 Video</button>
+      </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <!-- Items will be injected by JavaScript -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-20">
+      <i data-lucide="image-off" class="w-16 h-16 mx-auto text-slate-600 mb-4"></i>
+      <h3 class="text-lg font-semibold text-slate-300">Belum ada kenangan</h3>
+      <p class="text-slate-500 text-sm mt-1">Mulai upload foto atau video momen keluarga kamu!</p>
+    </div>
+  </main>
+
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <i data-lucide="upload-cloud" class="w-5 h-5 text-brand-500"></i> Upload Kenangan Baru
+        </h3>
+        <button id="btnCloseUpload" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="uploadForm" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Pilih File (Foto/Video max 5GB)</label>
+          <input type="file" id="fileInput" required accept="image/*,video/*"
+            class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-slate-800 file:text-brand-500 hover:file:bg-slate-700 cursor-pointer">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Judul / Momen</label>
+          <input type="text" id="titleInput" required placeholder="Contoh: Liburan ke Bali 2026"
+            class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Kategori</label>
+          <select id="categoryInput" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-brand-500">
+            <option value="Liburan">🌴 Liburan</option>
+            <option value="Ulang Tahun">🎂 Ulang Tahun</option>
+            <option value="Kumpul Keluarga">🏡 Kumpul Keluarga</option>
+            <option value="Lainnya">✨ Lainnya</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Deskripsi / Cerita (Opsional)</label>
+          <textarea id="descInput" rows="2" placeholder="Tulis catatan kecil tentang kenangan ini..."
+            class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-brand-500"></textarea>
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="uploadProgressContainer" class="hidden space-y-1">
+          <div class="flex justify-between text-xs text-slate-400">
+            <span id="uploadStatusText">Mengunggah...</span>
+            <span id="uploadPercent">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div id="progressBar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitUpload" class="w-full py-3 bg-brand-600 hover:bg-brand-500 font-medium rounded-xl transition shadow-lg shadow-brand-600/20 flex justify-center items-center gap-2">
+          <span>Mulai Upload</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Key Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+        <i data-lucide="key" class="w-5 h-5 text-amber-400"></i> Pengaturan Pokoco API Key
+      </h3>
+      <p class="text-xs text-slate-400">API Key dibutuhkan untuk melakukan tindakan Upload dan Delete ke Pokoco R2 storage.</p>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">API Key</label>
+        <input type="password" id="apiKeyInput" placeholder="Masukkan X-API-Key kamu"
+          class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-brand-500">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button id="btnSaveKey" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-sm font-medium rounded-xl">Simpan Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Media Lightbox / Detail Viewer Modal -->
+  <div id="lightboxModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+    <button id="btnCloseLightbox" class="absolute top-6 right-6 text-slate-400 hover:text-white p-2 rounded-full bg-slate-900/50">
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+    
+    <div class="max-w-4xl w-full max-h-[90vh] flex flex-col items-center">
+      <div id="lightboxContent" class="w-full flex justify-center max-h-[70vh] mb-4">
+        <!-- Image or Video dynamically rendered -->
+      </div>
+      <div class="text-center space-y-2 max-w-xl">
+        <span id="lightboxCategory" class="inline-block px-3 py-1 bg-brand-500/10 text-brand-400 text-xs font-semibold rounded-full"></span>
+        <h2 id="lightboxTitle" class="text-2xl font-bold text-white"></h2>
+        <p id="lightboxDesc" class="text-slate-400 text-sm"></p>
+        <div class="flex items-center justify-center gap-4 pt-4">
+          <a id="lightboxDownloadBtn" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Download File
+          </a>
+          <button id="lightboxDeleteBtn" class="flex items-center gap-2 px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-sm transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
