@@ -99,6 +99,7 @@ async function fetchMediaList() {
     if (json.success) {
       mediaItems = json.data;
       calculateAndRenderStats();
+      setupFlashbackWidget();
       if (currentFolder) {
         renderFolderGallery();
       } else {
@@ -109,6 +110,159 @@ async function fetchMediaList() {
     console.error("Gagal mengambil data galeri:", err);
   }
 }
+
+// Generate 3 unique random media flashbacks
+function getRandomFlashbackItems(count = 3) {
+  if (mediaItems.length === 0) return [];
+
+  // Shuffle array and pick unique folder category items first
+  const shuffled = [...mediaItems].sort(() => 0.5 - Math.random());
+  const selected = [];
+  const categoriesSeen = new Set();
+
+  for (const item of shuffled) {
+    const cat = item.category || "Umum";
+    if (!categoriesSeen.has(cat)) {
+      selected.push(item);
+      categoriesSeen.add(cat);
+      if (selected.length === count) break;
+    }
+  }
+
+  // Fallback: fill remaining spots with other unique items
+  if (selected.length < count) {
+    for (const item of shuffled) {
+      if (!selected.some(s => s.id === item.id)) {
+        selected.push(item);
+        if (selected.length === count) break;
+      }
+    }
+  }
+
+  return selected;
+}
+
+// Advanced background preloader & caching system to prevent unrendered/flickering cards
+function preloadFlashbackItems(items) {
+  return Promise.all(items.map(item => {
+    return new Promise((resolve) => {
+      if (item.media_type === "image") {
+        const img = new Image();
+        img.onload = () => resolve(item);
+        img.onerror = () => resolve(item);
+        img.src = item.view_url;
+      } else {
+        const video = document.createElement("video");
+        video.preload = "auto";
+        video.src = `${item.view_url}#t=0.5`;
+        video.muted = true;
+        video.playsInline = true;
+
+        // Resolve on load start or metadata load to prevent endless waiting, but forcing caching
+        video.onloadedmetadata = () => resolve(item);
+        video.onerror = () => resolve(item);
+
+        // Timeout fallback to ensure execution progress
+        setTimeout(() => resolve(item), 1500);
+      }
+    });
+  }));
+}
+
+// Kilas Balik Memori (Flashback Widget Setup)
+let flashbackItems = [];
+let flashbackIntervalId = null;
+
+async function setupFlashbackWidget() {
+  const widget = document.getElementById("flashbackWidget");
+  const listContainer = document.getElementById("flashbackList");
+
+  if (!widget || !listContainer) return;
+
+  if (mediaItems.length === 0) {
+    widget.classList.add("hidden");
+    return;
+  }
+
+  // Initial load - preload first to ensure no empty image boxes
+  if (flashbackItems.length === 0) {
+    flashbackItems = getRandomFlashbackItems(3);
+    await preloadFlashbackItems(flashbackItems);
+  }
+
+  renderFlashbackList();
+
+  // Setup slow, smooth auto-rotation every 12 seconds with perfect preloading
+  if (flashbackIntervalId) clearInterval(flashbackIntervalId);
+  flashbackIntervalId = setInterval(async () => {
+    // Fade out smoothly first
+    listContainer.classList.add("opacity-0", "translate-y-1");
+
+    // Pick the next random items to be loaded in parallel
+    const nextItems = getRandomFlashbackItems(3);
+
+    // Preload them silently in background browser cache
+    await preloadFlashbackItems(nextItems);
+
+    // Only swap variables and HTML after they are fully pre-cached in memory!
+    flashbackItems = nextItems;
+    renderFlashbackList();
+
+    // Fade in smoothly - completely flicker free!
+    setTimeout(() => {
+      listContainer.classList.remove("opacity-0", "translate-y-1");
+    }, 50);
+  }, 12000);
+}
+
+function renderFlashbackList() {
+  const listContainer = document.getElementById("flashbackList");
+  if (!listContainer || flashbackItems.length === 0) return;
+
+  listContainer.innerHTML = flashbackItems.map(item => {
+    const folderName = item.category || "Umum";
+    let mediaHtml = "";
+
+    if (item.media_type === "image") {
+      mediaHtml = `<img src="${item.view_url}" alt="${folderName}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
+    } else {
+      mediaHtml = `
+        <video src="${item.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="none"></video>
+        <div class="absolute inset-0 bg-black/15 flex items-center justify-center">
+          <div class="w-6 h-6 bg-white/90 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
+            <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div onclick="navigateToFolder('${encodeURIComponent(folderName)}')" class="group cursor-pointer flex flex-col items-center text-center space-y-1.5 active:scale-95 transition-all duration-200">
+        <div class="aspect-square w-full rounded-2xl bg-neutral-100 overflow-hidden relative border border-purple-100/50 shadow-sm">
+          ${mediaHtml}
+        </div>
+        <div class="flex items-center gap-1 max-w-full px-1">
+          <i data-lucide="folder" class="w-3 h-3 text-neutral-400 shrink-0"></i>
+          <span class="text-[9px] font-bold text-neutral-700 truncate">${folderName}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  lucide.createIcons();
+}
+
+// Navigate straight to the specific folder view
+window.navigateToFolder = (encodedFolderName) => {
+  const folderName = decodeURIComponent(encodedFolderName);
+  selectFolder(encodedFolderName);
+
+  // Smooth scroll down to Screen 2
+  const folderHeader = document.getElementById("galleryTitle");
+  if (folderHeader) {
+    folderHeader.scrollIntoView({ behavior: 'smooth' });
+  }
+};
 
 // Calculate and render dynamic family storage stats
 function calculateAndRenderStats() {
@@ -182,6 +336,11 @@ function renderFolders() {
   const statsWidget = document.getElementById("statsWidget");
   if (statsWidget && mediaItems.length > 0) {
     statsWidget.classList.remove("hidden");
+  }
+
+  const widget = document.getElementById("flashbackWidget");
+  if (widget && mediaItems.length > 0) {
+    widget.classList.remove("hidden");
   }
 
   const searchContainer = document.getElementById("searchFolderContainer");
@@ -332,6 +491,11 @@ function renderFolderGallery() {
   const statsWidget = document.getElementById("statsWidget");
   if (statsWidget) {
     statsWidget.classList.add("hidden");
+  }
+
+  const widget = document.getElementById("flashbackWidget");
+  if (widget) {
+    widget.classList.add("hidden");
   }
 
   const folderFiles = mediaItems.filter(item => {
@@ -690,126 +854,8 @@ async function handleBatchUpload(files, folderName) {
   }, 1200);
 }
 
-// Smart Fullscreen Slideshow Mode
-function startSlideshow() {
-  if (!currentFolder) return;
-
-  slideshowItems = mediaItems.filter(item => {
-    const cat = item.category || "Umum";
-    return cat === currentFolder;
-  });
-
-  if (slideshowItems.length === 0) {
-    alert("Folder kosong, tidak bisa memulai slideshow!");
-    return;
-  }
-
-  isSlideshowActive = true;
-  isSlideshowPlaying = true;
-  slideshowIndex = 0;
-
-  const controls = document.getElementById("slideshowControls");
-  if (controls) controls.classList.remove("hidden");
-
-  updatePlayPauseSlideIcon();
-  playSlide(slideshowIndex);
-}
-
-function stopSlideshow() {
-  isSlideshowActive = false;
-  isSlideshowPlaying = false;
-  if (slideshowTimer) {
-    clearTimeout(slideshowTimer);
-    slideshowTimer = null;
-  }
-  const controls = document.getElementById("slideshowControls");
-  if (controls) controls.classList.add("hidden");
-}
-
-function playSlide(index) {
-  if (index < 0) index = slideshowItems.length - 1;
-  if (index >= slideshowItems.length) index = 0;
-  slideshowIndex = index;
-
-  const item = slideshowItems[slideshowIndex];
-  if (!item) return;
-
-  // Render on screen
-  openLightbox(item.id, true);
-
-  if (slideshowTimer) {
-    clearTimeout(slideshowTimer);
-    slideshowTimer = null;
-  }
-
-  if (!isSlideshowPlaying) return;
-
-  if (item.media_type === "image") {
-    // 4 seconds transition for photos
-    slideshowTimer = setTimeout(() => {
-      nextSlide();
-    }, 4000);
-  } else {
-    // For videos, automatically advance ONLY when video ends
-    const videoEl = document.querySelector("#lightboxContent video");
-    if (videoEl) {
-      videoEl.onended = () => {
-        if (isSlideshowPlaying && isSlideshowActive) {
-          nextSlide();
-        }
-      };
-    } else {
-      // Fallback if video element not found immediately
-      slideshowTimer = setTimeout(() => {
-        nextSlide();
-      }, 5000);
-    }
-  }
-}
-
-function nextSlide() {
-  playSlide(slideshowIndex + 1);
-}
-
-function prevSlide() {
-  playSlide(slideshowIndex - 1);
-}
-
-function togglePlayPauseSlide() {
-  isSlideshowPlaying = !isSlideshowPlaying;
-  updatePlayPauseSlideIcon();
-
-  if (isSlideshowPlaying) {
-    playSlide(slideshowIndex);
-  } else {
-    if (slideshowTimer) {
-      clearTimeout(slideshowTimer);
-      slideshowTimer = null;
-    }
-    // Pause active video play if any
-    const videoEl = document.querySelector("#lightboxContent video");
-    if (videoEl) videoEl.pause();
-  }
-}
-
-function updatePlayPauseSlideIcon() {
-  const icon = document.getElementById("playPauseSlideIcon");
-  if (!icon) return;
-  if (isSlideshowPlaying) {
-    icon.setAttribute("data-lucide", "pause");
-  } else {
-    icon.setAttribute("data-lucide", "play");
-  }
-  lucide.createIcons();
-}
-
 // Lightbox Detail Viewer
-window.openLightbox = (id, fromSlideshow = false) => {
-  // If manual open, stop active slideshow
-  if (!fromSlideshow && isSlideshowActive) {
-    stopSlideshow();
-  }
-
+window.openLightbox = (id) => {
   const item = mediaItems.find(i => i.id === id);
   if (!item) return;
 

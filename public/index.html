@@ -202,10 +202,6 @@
             <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
             <span>Bagikan</span>
           </button>
-          <button id="btnSlideshow" class="hidden text-violet-600 hover:text-violet-800 p-1.5 hover:bg-violet-50 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i>
-            <span>Slideshow</span>
-          </button>
           <h3 id="galleryTitle" class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
             <i data-lucide="folder" class="w-3.5 h-3.5 text-violet-500"></i>
             <span>Daftar Folder Bani Dumeri</span>
@@ -217,6 +213,21 @@
           <button data-cat="all" class="sub-cat-btn active px-3 py-1 rounded-lg text-[10px] font-bold bg-white text-neutral-900 shadow-sm transition-all duration-200">Semua</button>
           <button data-cat="image" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Foto</button>
           <button data-cat="video" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Video</button>
+        </div>
+      </div>
+
+      <!-- Kilas Balik Memori Widget (Visible only if there is media) -->
+      <div id="flashbackWidget" class="hidden premium-card p-4 sm:p-5 border border-purple-100/30 bg-gradient-to-br from-violet-50/20 via-white to-fuchsia-50/10 space-y-4 relative overflow-hidden group transition-all duration-300">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center shrink-0">
+            <i data-lucide="history" class="w-3.5 h-3.5"></i>
+          </div>
+          <span class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest">Kilas Balik Memori Keluarga</span>
+        </div>
+
+        <!-- Grid list of multiple memories -->
+        <div id="flashbackList" class="grid grid-cols-3 gap-3 transition-all duration-500 opacity-100">
+          <!-- Rendered dynamically -->
         </div>
       </div>
 
@@ -375,18 +386,6 @@
       </div>
     </div>
 
-    <!-- Slideshow Control Overlays (Visible only when slideshow is active) -->
-    <div id="slideshowControls" class="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-neutral-900/85 px-4.5 py-2.5 rounded-2xl border border-neutral-800 hidden">
-      <button id="btnPrevSlide" class="text-white hover:text-violet-400 p-1.5 transition">
-        <i data-lucide="skip-back" class="w-4 h-4"></i>
-      </button>
-      <button id="btnPlayPauseSlide" class="text-white hover:text-violet-400 p-2 bg-violet-600 rounded-xl transition">
-        <i id="playPauseSlideIcon" data-lucide="pause" class="w-4 h-4"></i>
-      </button>
-      <button id="btnNextSlide" class="text-white hover:text-violet-400 p-1.5 transition">
-        <i data-lucide="skip-forward" class="w-4 h-4"></i>
-      </button>
-    </div>
   </div>
 
   <!-- Subtle Footer -->
