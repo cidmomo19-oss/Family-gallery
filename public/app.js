@@ -71,18 +71,18 @@ function renderGallery() {
 
   emptyState.classList.add("hidden");
   galleryGrid.innerHTML = filtered.map(item => `
-    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-neutral-200/40">
+    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-2xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-purple-100/30">
       ${item.media_type === 'image'
         ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover">`
         : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
            <div class="absolute inset-0 bg-neutral-950/10 flex items-center justify-center">
-             <div class="w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full text-neutral-900 shadow-sm flex items-center justify-center">
+             <div class="w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full text-violet-600 shadow-sm flex items-center justify-center">
                <i data-lucide="play" class="w-3 h-3 fill-current"></i>
              </div>
            </div>`
       }
       <!-- Quick Title Hover/Overlay -->
-      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2">
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5">
         <p class="text-white text-[9px] font-bold truncate tracking-wide">${item.title}</p>
       </div>
     </div>
@@ -134,16 +134,16 @@ function setupEventListeners() {
     // Drag and Drop fallback support
     dropzone.ondragover = (e) => {
       e.preventDefault();
-      dropzone.classList.add("border-neutral-400", "bg-neutral-50");
+      dropzone.classList.add("border-violet-400", "bg-violet-50/20");
     };
 
     dropzone.ondragleave = () => {
-      dropzone.classList.remove("border-neutral-400", "bg-neutral-50");
+      dropzone.classList.remove("border-violet-400", "bg-violet-50/20");
     };
 
     dropzone.ondrop = (e) => {
       e.preventDefault();
-      dropzone.classList.remove("border-neutral-400", "bg-neutral-50");
+      dropzone.classList.remove("border-violet-400", "bg-violet-50/20");
 
       if (e.dataTransfer.files.length > 0) {
         handleBatchUpload(Array.from(e.dataTransfer.files));
@@ -175,7 +175,7 @@ async function handleBatchUpload(files) {
 
   // Initialize status queue UI list
   statusList.innerHTML = files.map(f => `
-    <div id="file-row-${f.name.replace(/[^a-zA-Z0-9]/g, '')}" class="flex items-center justify-between text-[10px] bg-neutral-50 p-2 rounded-lg border border-neutral-100">
+    <div id="file-row-${f.name.replace(/[^a-zA-Z0-9]/g, '')}" class="flex items-center justify-between text-[10px] bg-neutral-50 p-2.5 rounded-xl border border-purple-100/30">
       <span class="text-neutral-700 font-semibold truncate max-w-[70%]">${f.name}</span>
       <span class="status-badge text-neutral-400 font-extrabold uppercase tracking-wider text-[8px]">Menunggu</span>
     </div>

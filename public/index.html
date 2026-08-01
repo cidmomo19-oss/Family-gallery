@@ -14,27 +14,31 @@
       theme: {
         extend: {
           colors: {
-            brand: {
-              50: '#fafafa',
-              100: '#f5f5f5',
-              600: '#171717',
-              700: '#262626'
+            accent: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#8b5cf6', /* Vibrant Violet */
+              600: '#7c3aed',
+              700: '#6d28d9',
             }
           },
           fontFamily: {
-            sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif']
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif']
           }
         }
       }
     }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Google Font: Plus Jakarta Sans for incredibly beautiful, modern typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     body {
-      background-color: #fafafa;
-      color: #171717;
+      background-color: #faf9fb;
+      color: #1f1a24;
     }
+
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -42,68 +46,97 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    /* Beautiful glassmorphic design and colorful glowing cards */
     .premium-card {
       background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01), 0 8px 24px rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(139, 92, 246, 0.08);
+      box-shadow: 0 4px 20px -2px rgba(139, 92, 246, 0.04), 0 2px 6px -1px rgba(139, 92, 246, 0.02);
       border-radius: 24px;
+    }
+
+    /* Soft ambient glowing backdrop blur */
+    .glow-bg {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.05) 70%, transparent 100%);
+      filter: blur(40px);
+      z-index: -1;
+      pointer-events: none;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-neutral-200">
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-accent-100 relative overflow-x-hidden">
+
+  <!-- Floating Glow Backdrops -->
+  <div class="glow-bg top-10 left-5"></div>
+  <div class="glow-bg top-80 right-5"></div>
 
   <!-- Minimal Header -->
-  <header class="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-neutral-100 h-16 sm:h-20 flex items-center">
+  <header class="sticky top-0 z-40 bg-white/75 backdrop-blur-md border-b border-purple-100/40 h-16 sm:h-20 flex items-center shadow-[0_1px_10px_-4px_rgba(139,92,246,0.05)]">
     <div class="max-w-xl mx-auto w-full px-6 flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-neutral-900 flex items-center justify-center text-white shadow-sm">
-          <i data-lucide="cloud" class="w-4 h-4"></i>
+      <div class="flex items-center gap-3">
+        <!-- Colorful Gradient Logo Container -->
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/10">
+          <i data-lucide="folder-heart" class="w-4.5 h-4.5"></i>
         </div>
         <div>
-          <h1 class="text-sm font-bold tracking-tight text-neutral-900">Kubah Memori</h1>
+          <h1 class="text-xs font-extrabold tracking-tight text-neutral-900 flex items-center gap-1 bg-gradient-to-r from-violet-700 to-fuchsia-600 bg-clip-text text-transparent">
+            Kubah Memori
+          </h1>
           <p class="text-[9px] font-bold text-neutral-400 tracking-wider uppercase -mt-0.5">Penyimpanan Keluarga</p>
         </div>
       </div>
 
       <!-- Key Settings -->
-      <button id="btnSettings" class="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-all" title="API Key Settings">
-        <i data-lucide="key" class="w-4 h-4"></i>
+      <button id="btnSettings" class="p-2.5 text-neutral-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all duration-250" title="API Key Settings">
+        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
       </button>
     </div>
   </header>
 
   <!-- Mobile-focused Single Scroll Feed Workspace -->
-  <main class="max-w-xl mx-auto w-full px-5 py-6 flex-1 space-y-8">
+  <main class="max-w-xl mx-auto w-full px-5 py-6 flex-1 space-y-8 relative">
 
     <!-- Top Area: Professional Headline & Direct Mobile File Picker Trigger -->
-    <section class="space-y-4">
-      <div class="space-y-1 text-center sm:text-left">
-        <h2 class="text-base font-extrabold text-neutral-900 tracking-tight">Penyimpanan Kenangan Instan</h2>
-        <p class="text-xs text-neutral-400 font-medium">Klik tombol di bawah untuk langsung membuka file manager / galeri hp kamu dan mengunggah banyak foto atau video sekaligus.</p>
+    <section class="space-y-5">
+      <div class="space-y-1.5 text-center">
+        <!-- High Contrast Elegant Headline -->
+        <h2 class="text-lg font-extrabold text-neutral-900 tracking-tight leading-snug">
+          Penyimpanan Kenangan Instan
+        </h2>
+        <p class="text-xs text-neutral-400 font-medium max-w-sm mx-auto leading-relaxed">
+          Unggah banyak foto & video sekaligus tanpa repot. Langsung masuk ke arsip pribadi keluarga kita.
+        </p>
       </div>
 
-      <!-- Massive Direct Action Button (Launches native OS file picker instantly) -->
-      <div id="dropzone" class="premium-card p-6 sm:p-8 hover:border-neutral-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-neutral-200/60 active:scale-[0.98]">
+      <!-- Gorgeous Vibrant Direct Action Button -->
+      <div id="dropzone" class="premium-card p-8 sm:p-10 hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-purple-100/40 active:scale-[0.98] relative overflow-hidden group">
+        <!-- Glow Overlay effect on Hover -->
+        <div class="absolute inset-0 bg-gradient-to-tr from-violet-50/10 to-fuchsia-50/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
         <!-- Completely hidden native multiple file input -->
         <input type="file" id="fileInput" accept="image/*,video/*" multiple class="hidden">
 
-        <div class="flex flex-col items-center text-center">
-          <div class="w-12 h-12 bg-neutral-900 text-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-            <i data-lucide="upload" class="w-5 h-5"></i>
+        <div class="flex flex-col items-center text-center relative z-10">
+          <!-- Colorful Glow Trigger Icon -->
+          <div class="w-14 h-14 bg-gradient-to-tr from-violet-600 to-fuchsia-500 text-white rounded-2xl flex items-center justify-center mb-5 shadow-md shadow-violet-500/20 group-hover:scale-105 transition-all duration-300">
+            <i data-lucide="plus" class="w-6 h-6"></i>
           </div>
-          <span class="text-xs font-bold text-neutral-900">Pilih Berkas & Upload</span>
-          <span class="text-[10px] text-neutral-400 mt-1 font-medium">Buka Galeri Foto / Video HP Kamu</span>
+          <span class="text-xs font-bold text-neutral-900 tracking-tight">Pilih Foto & Video</span>
+          <span class="text-[10px] text-neutral-400 mt-1 font-semibold">Buka file manager atau galeri HP langsung</span>
         </div>
       </div>
 
-      <!-- Queue Progress Container -->
-      <div id="uploadProgressContainer" class="hidden premium-card p-4 space-y-3">
-        <div class="flex justify-between items-center border-b border-neutral-100 pb-2">
-          <span id="overallProgressText" class="text-[10px] font-bold text-neutral-800">Mengunggah...</span>
-          <span id="uploadPercent" class="text-[9px] font-extrabold text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded">0%</span>
+      <!-- Beautiful Queue Progress Container -->
+      <div id="uploadProgressContainer" class="hidden premium-card p-5 space-y-4">
+        <div class="flex justify-between items-center border-b border-purple-100/50 pb-2.5">
+          <span id="overallProgressText" class="text-[10px] font-extrabold text-violet-700 tracking-tight">Sedang memproses...</span>
+          <span id="uploadPercent" class="text-[10px] font-extrabold text-violet-800 bg-violet-50 border border-violet-100/40 px-2 py-0.5 rounded-lg">0%</span>
         </div>
-        <div class="w-full bg-neutral-100 rounded-full h-1 overflow-hidden">
-          <div id="progressBar" class="bg-neutral-900 h-full w-0 transition-all duration-300"></div>
+        <div class="w-full bg-neutral-100 rounded-full h-1.5 overflow-hidden">
+          <div id="progressBar" class="bg-gradient-to-r from-violet-600 to-fuchsia-500 h-full w-0 transition-all duration-300"></div>
         </div>
         <div id="statusList" class="max-h-24 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
           <!-- Queue rows -->
@@ -112,41 +145,44 @@
     </section>
 
     <!-- Bottom Area: Pure Media Gallery Grid -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
-        <h3 class="text-xs font-extrabold text-neutral-400 uppercase tracking-widest">Galeri Simpanan</h3>
+    <section class="space-y-5">
+      <div class="flex items-center justify-between border-b border-purple-100/40 pb-4">
+        <h3 class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="archive" class="w-3.5 h-3.5 text-violet-500"></i>
+          Arsip Tersimpan
+        </h3>
 
         <!-- Filter Toggle -->
-        <div class="flex bg-neutral-100 p-0.5 rounded-lg border border-neutral-200/20">
-          <button data-cat="all" class="sub-cat-btn active px-2.5 py-1 rounded-md text-[10px] font-bold bg-white text-neutral-900 shadow-sm">Semua</button>
-          <button data-cat="image" class="sub-cat-btn px-2.5 py-1 rounded-md text-[10px] font-bold text-neutral-400 hover:text-neutral-900">Foto</button>
-          <button data-cat="video" class="sub-cat-btn px-2.5 py-1 rounded-md text-[10px] font-bold text-neutral-400 hover:text-neutral-900">Video</button>
+        <div class="flex bg-neutral-100 p-0.5 rounded-xl border border-neutral-200/20">
+          <button data-cat="all" class="sub-cat-btn active px-3 py-1 rounded-lg text-[10px] font-bold bg-white text-neutral-900 shadow-sm transition-all duration-200">Semua</button>
+          <button data-cat="image" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Foto</button>
+          <button data-cat="video" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Video</button>
         </div>
       </div>
 
       <!-- Gallery Grid -->
-      <div id="galleryGrid" class="grid grid-cols-3 gap-2">
+      <div id="galleryGrid" class="grid grid-cols-3 gap-2.5">
         <!-- Media tiles with subtle clean lines -->
       </div>
 
       <!-- Empty State -->
-      <div id="emptyState" class="hidden text-center py-16 bg-white border border-neutral-200/40 rounded-3xl">
-        <div class="p-3 bg-neutral-50 text-neutral-400 rounded-full inline-block mb-3 border border-neutral-100">
-          <i data-lucide="archive" class="w-5 h-5"></i>
+      <div id="emptyState" class="hidden text-center py-20 bg-white border border-purple-100/30 rounded-3xl premium-card">
+        <div class="p-3 bg-violet-50 text-violet-500 rounded-full inline-block mb-3 border border-violet-100/30">
+          <i data-lucide="hard-drive-upload" class="w-5 h-5"></i>
         </div>
         <h4 class="text-xs font-bold text-neutral-800">Penyimpanan Kosong</h4>
-        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Pilih berkas di atas untuk mulai menyimpan kenangan pertama kamu.</p>
+        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Klik tombol di atas untuk mulai menyimpan kenangan pertama keluarga.</p>
       </div>
     </section>
 
   </main>
 
   <!-- Key Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 bg-neutral-900/15 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white border border-neutral-200/60 rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-xl">
+  <div id="settingsModal" class="fixed inset-0 bg-neutral-950/20 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white border border-purple-100/40 rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <h3 class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-          <i data-lucide="key" class="w-3.5 h-3.5 text-neutral-800"></i> API Key Settings
+          <i data-lucide="key" class="w-3.5 h-3.5 text-violet-600"></i> API Key Settings
         </h3>
         <button id="btnCloseSettings" class="text-neutral-400 hover:text-neutral-600 p-1 hover:bg-neutral-50 rounded-lg transition">
           <i data-lucide="x" class="w-3.5 h-3.5"></i>
@@ -155,10 +191,10 @@
       <p class="text-[10px] text-neutral-400 leading-relaxed">X-API-Key digunakan untuk memvalidasi proses upload & hapus langsung ke R2.</p>
       <div>
         <input type="password" id="apiKeyInput" placeholder="X-API-Key kamu"
-          class="w-full px-3 py-2 bg-neutral-50 border border-neutral-200/60 rounded-xl text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-neutral-400 text-neutral-800 placeholder-neutral-400 transition-all">
+          class="w-full px-3 py-2 bg-neutral-50 border border-neutral-200/60 rounded-xl text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-violet-400 text-neutral-800 placeholder-neutral-400 transition-all">
       </div>
       <div class="flex justify-end pt-1">
-        <button id="btnSaveKey" class="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-[10px] font-bold rounded-lg shadow-sm transition-all">Simpan</button>
+        <button id="btnSaveKey" class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white text-[10px] font-bold rounded-lg shadow-md transition-all">Simpan</button>
       </div>
     </div>
   </div>
@@ -188,7 +224,7 @@
   </div>
 
   <!-- Subtle Footer -->
-  <footer class="py-6 text-center text-[9px] text-neutral-400 font-bold uppercase tracking-widest bg-slate-50 border-t border-slate-200/30">
+  <footer class="py-6 text-center text-[9px] text-neutral-400 font-bold uppercase tracking-widest bg-slate-50 border-t border-purple-100/40 mt-auto">
     Kubah Memori &copy; <span id="currentYear">2026</span> &bull; Penyimpanan Keluarga
   </footer>
 
