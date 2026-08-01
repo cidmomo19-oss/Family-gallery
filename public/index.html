@@ -96,15 +96,6 @@
         </p>
       </div>
 
-      <!-- Folder Creation & Input Input - MANDATORY -->
-      <div class="space-y-2">
-        <label class="block text-[10px] font-extrabold text-neutral-500 uppercase tracking-widest">
-          Nama Folder Penyimpanan <span class="text-rose-500">* Wajib</span>
-        </label>
-        <input type="text" id="folderNameInput" placeholder="Masukkan nama folder (Contoh: Liburan Jogja 2026)"
-          class="w-full px-4 py-3 bg-white border border-purple-100 rounded-2xl text-xs focus:outline-none focus:ring-2 focus:ring-violet-400/20 focus:border-violet-500 text-neutral-800 placeholder-neutral-400 font-medium transition-all shadow-sm">
-      </div>
-
       <!-- Gorgeous Solid Direct Action Trigger Card -->
       <div id="dropzone" class="premium-card p-10 sm:p-12 hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-purple-100/40 active:scale-[0.98] relative overflow-hidden group">
         <!-- Completely hidden native multiple file input -->
@@ -178,7 +169,7 @@
           <i data-lucide="hard-drive-upload" class="w-5 h-5"></i>
         </div>
         <h4 class="text-xs font-bold text-neutral-800">Belum ada Folder</h4>
-        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Masukkan nama folder dan pilih berkas di atas untuk membuat folder pertama kamu.</p>
+        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Pilih berkas di atas dan tentukan folder penyimpanan untuk membuat folder pertama kamu.</p>
       </div>
     </section>
 
@@ -245,6 +236,33 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- Folder Prompt Modal (Renders after file selection) -->
+  <div id="folderPromptModal" class="fixed inset-0 bg-neutral-950/40 z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white border border-purple-100/40 rounded-3xl w-full max-w-xs p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center gap-2 border-b border-purple-100/50 pb-3">
+        <div class="w-7 h-7 bg-violet-50 text-violet-600 rounded-lg flex items-center justify-center shrink-0">
+          <i data-lucide="folder-plus" class="w-4 h-4"></i>
+        </div>
+        <h3 class="text-xs font-extrabold text-neutral-900">
+          Simpan ke Folder Mana?
+        </h3>
+      </div>
+
+      <p class="text-[10px] text-neutral-400 leading-relaxed font-semibold">Tentukan nama folder untuk mengelompokkan berkas-berkas yang baru saja Anda pilih.</p>
+
+      <div class="space-y-1.5">
+        <label class="block text-[9px] font-extrabold text-neutral-400 uppercase tracking-widest">Nama Folder</label>
+        <input type="text" id="folderPromptInput" placeholder="Contoh: Liburan Jogja 2026"
+          class="w-full px-3 py-2.5 bg-neutral-50 border border-purple-100 rounded-xl text-xs focus:outline-none focus:bg-white focus:ring-2 focus:ring-violet-400/20 focus:border-violet-500 text-neutral-800 placeholder-neutral-400 font-medium transition-all">
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button id="btnCancelUpload" class="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[10px] font-bold rounded-xl transition-all">Batal</button>
+        <button id="btnConfirmUpload" class="px-4 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white text-[10px] font-bold rounded-xl shadow-md transition-all">Mulai Unggah</button>
+      </div>
+    </div>
   </div>
 
   <!-- Key Settings Modal -->

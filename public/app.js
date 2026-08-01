@@ -6,6 +6,7 @@ let mediaItems = [];
 let activeFilter = "all";
 let currentSelectedItem = null;
 let currentFolder = null;
+let selectedFilesQueue = []; // Temporarily hold selected files
 
 // Initialize Lucide Icons
 lucide.createIcons();
@@ -19,6 +20,12 @@ const galleryGrid = document.getElementById("galleryGrid");
 const emptyState = document.getElementById("emptyState");
 const lightboxModal = document.getElementById("lightboxModal");
 const settingsModal = document.getElementById("settingsModal");
+
+// Folder Prompt Modal Elements
+const folderPromptModal = document.getElementById("folderPromptModal");
+const folderPromptInput = document.getElementById("folderPromptInput");
+const btnConfirmUpload = document.getElementById("btnConfirmUpload");
+const btnCancelUpload = document.getElementById("btnCancelUpload");
 
 const uploadProgressContainer = document.getElementById("uploadProgressContainer");
 const progressBar = document.getElementById("progressBar");
@@ -216,7 +223,13 @@ function setupEventListeners() {
   const apiKeyInput = document.getElementById("apiKeyInput");
   const btnBackToFolders = document.getElementById("btnBackToFolders");
 
-  if (btnCloseLightbox) btnCloseLightbox.onclick = () => lightboxModal.classList.add("hidden");
+  if (btnCloseLightbox) {
+    btnCloseLightbox.onclick = () => {
+      lightboxModal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    };
+  }
+
   if (btnSettings) btnSettings.onclick = () => settingsModal.classList.remove("hidden");
   if (btnCloseSettings) btnCloseSettings.onclick = () => settingsModal.classList.add("hidden");
 
@@ -249,15 +262,32 @@ function setupEventListeners() {
     };
   });
 
-  // Direct Mobile-friendly Dropzone File Selection trigger (opens native OS selector instantly)
-  if (dropzone) {
-    dropzone.onclick = () => {
-      const folderVal = document.getElementById("folderNameInput").value.trim();
+  // Folder modal cancel/confirm trigger
+  if (btnCancelUpload) {
+    btnCancelUpload.onclick = () => {
+      selectedFilesQueue = [];
+      fileInput.value = "";
+      folderPromptInput.value = "";
+      folderPromptModal.classList.add("hidden");
+    };
+  }
+
+  if (btnConfirmUpload) {
+    btnConfirmUpload.onclick = () => {
+      const folderVal = folderPromptInput.value.trim();
       if (!folderVal) {
-        alert("Silakan isi Nama Folder Penyimpanan terlebih dahulu!");
-        document.getElementById("folderNameInput").focus();
+        alert("Silakan isi Nama Folder!");
+        folderPromptInput.focus();
         return;
       }
+      folderPromptModal.classList.add("hidden");
+      handleBatchUpload(selectedFilesQueue, folderVal);
+    };
+  }
+
+  // Direct Mobile-friendly Dropzone File Selection trigger
+  if (dropzone) {
+    dropzone.onclick = () => {
       fileInput.click();
     };
 
@@ -275,31 +305,25 @@ function setupEventListeners() {
       e.preventDefault();
       dropzone.classList.remove("border-violet-400", "bg-violet-50/20");
 
-      const folderVal = document.getElementById("folderNameInput").value.trim();
-      if (!folderVal) {
-        alert("Silakan isi Nama Folder Penyimpanan terlebih dahulu!");
-        document.getElementById("folderNameInput").focus();
-        return;
-      }
-
       if (e.dataTransfer.files.length > 0) {
-        handleBatchUpload(Array.from(e.dataTransfer.files), folderVal);
+        selectedFilesQueue = Array.from(e.dataTransfer.files);
+        // Show folder name prompt modal
+        folderPromptInput.value = "";
+        folderPromptModal.classList.remove("hidden");
+        folderPromptInput.focus();
       }
     };
   }
 
-  // File input changes trigger upload instantly
+  // File input changes trigger
   if (fileInput) {
     fileInput.onchange = (e) => {
-      const folderVal = document.getElementById("folderNameInput").value.trim();
-      if (!folderVal) {
-        alert("Silakan isi Nama Folder Penyimpanan terlebih dahulu!");
-        document.getElementById("folderNameInput").focus();
-        fileInput.value = "";
-        return;
-      }
       if (e.target.files.length > 0) {
-        handleBatchUpload(Array.from(e.target.files), folderVal);
+        selectedFilesQueue = Array.from(e.target.files);
+        // Show folder name prompt modal
+        folderPromptInput.value = "";
+        folderPromptModal.classList.remove("hidden");
+        folderPromptInput.focus();
       }
     };
   }
@@ -427,7 +451,8 @@ async function handleBatchUpload(files, folderName) {
   setTimeout(() => {
     uploadProgressContainer.classList.add("hidden");
     fileInput.value = "";
-    document.getElementById("folderNameInput").value = "";
+    folderPromptInput.value = "";
+    selectedFilesQueue = [];
     currentFolder = folderName;
     fetchMediaList();
   }, 1200);
@@ -454,6 +479,9 @@ window.openLightbox = (id) => {
 
   document.getElementById("lightboxDeleteBtn").onclick = () => deleteMedia(item.id);
 
+  // Lock scrolling
+  document.body.classList.add("overflow-hidden");
+
   lightboxModal.classList.remove("hidden");
   lucide.createIcons();
 };
@@ -473,6 +501,7 @@ async function deleteMedia(id) {
     const json = await res.json();
     if (json.success) {
       lightboxModal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
       fetchMediaList();
     } else {
       alert(`Gagal menghapus: ${json.error}`);
