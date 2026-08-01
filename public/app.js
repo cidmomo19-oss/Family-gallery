@@ -123,11 +123,28 @@ function renderFolders() {
     }
 
     const previewImg = f.files.find(item => item.media_type === "image");
-    const previewHtml = previewImg
-      ? `<img src="${previewImg.view_url}" alt="${f.name}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`
-      : `<div class="w-full h-full bg-violet-50 text-violet-500 flex items-center justify-center">
-           <i data-lucide="folder" class="w-10 h-10"></i>
-         </div>`;
+    const previewVideo = f.files.find(item => item.media_type === "video");
+
+    let previewHtml = "";
+    if (previewImg) {
+      previewHtml = `<img src="${previewImg.view_url}" alt="${f.name}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
+    } else if (previewVideo) {
+      // Loop muted autoplay video thumbnail snippet
+      previewHtml = `
+        <video src="${previewVideo.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="metadata"></video>
+        <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+          <div class="w-7 h-7 bg-white/90 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
+            <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
+          </div>
+        </div>
+      `;
+    } else {
+      previewHtml = `
+        <div class="w-full h-full bg-violet-50 text-violet-500 flex items-center justify-center">
+          <i data-lucide="folder" class="w-10 h-10"></i>
+        </div>
+      `;
+    }
 
     return `
       <div onclick="selectFolder('${encodeURIComponent(f.name)}')" class="group premium-card overflow-hidden cursor-pointer hover:border-violet-300 active:scale-95 transition-all duration-250 flex flex-col">
@@ -227,6 +244,11 @@ function setupEventListeners() {
     btnCloseLightbox.onclick = () => {
       lightboxModal.classList.add("hidden");
       document.body.classList.remove("overflow-hidden");
+      // Stop any video playing
+      const videoEl = document.querySelector("#lightboxContent video");
+      if (videoEl) {
+        videoEl.pause();
+      }
     };
   }
 
@@ -297,6 +319,7 @@ function setupEventListeners() {
       dropzone.classList.add("border-violet-400", "bg-violet-50/20");
     };
 
+    // Drag and Drop leave
     dropzone.ondragleave = () => {
       dropzone.classList.remove("border-violet-400", "bg-violet-50/20");
     };
@@ -469,14 +492,59 @@ window.openLightbox = (id) => {
   if (item.media_type === "image") {
     contentContainer.innerHTML = `<img src="${item.view_url}" class="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl">`;
   } else {
-    contentContainer.innerHTML = `<video src="${item.view_url}" controls autoplay class="max-h-[75vh] w-full rounded-xl shadow-2xl"></video>`;
+    // Elegant custom video player (JW Player Skin inspired)
+    contentContainer.innerHTML = `
+      <div class="relative w-full max-h-[75vh] group/player bg-black rounded-xl overflow-hidden flex items-center justify-center">
+        <video id="customVideo" src="${item.view_url}" playsinline class="w-full max-h-[75vh] object-contain"></video>
+
+        <!-- Big Play Button Overlay -->
+        <button id="bigPlayBtn" class="absolute w-14 h-14 bg-violet-600/90 hover:bg-violet-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform scale-100 hover:scale-110 duration-200 z-10">
+          <i data-lucide="play" class="w-6 h-6 fill-current ml-1" id="bigPlayIcon"></i>
+        </button>
+
+        <!-- JW Player Skin style control bar -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-neutral-950/90 via-neutral-900/60 to-transparent p-3 flex flex-col gap-2 opacity-0 group-hover/player:opacity-100 transition-opacity duration-300 z-20">
+
+          <!-- Timeline progress range -->
+          <div class="flex items-center">
+            <input type="range" id="videoTimeline" min="0" max="100" value="0" class="timeline-slider">
+          </div>
+
+          <!-- Bottom controls bar row -->
+          <div class="flex items-center justify-between text-white">
+            <div class="flex items-center gap-3">
+              <!-- Play / Pause button -->
+              <button id="videoPlayPauseBtn" class="hover:text-violet-400 transition">
+                <i data-lucide="play" class="w-4 h-4" id="videoPlayIcon"></i>
+              </button>
+
+              <!-- Time Counter -->
+              <span id="videoTimeText" class="text-[9px] font-semibold text-neutral-300">0:00 / 0:00</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <!-- Mute Button -->
+              <button id="videoMuteBtn" class="hover:text-violet-400 transition">
+                <i data-lucide="volume-2" class="w-4 h-4" id="videoMuteIcon"></i>
+              </button>
+
+              <!-- Fullscreen Button -->
+              <button id="videoFullscreenBtn" class="hover:text-violet-400 transition">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Bind Custom Player interactivity
+    setTimeout(() => {
+      initCustomPlayer();
+    }, 50);
   }
 
   document.getElementById("lightboxTitle").innerText = item.title;
-  
-  const downloadBtn = document.getElementById("lightboxDownloadBtn");
-  downloadBtn.href = item.download_url;
-
   document.getElementById("lightboxDeleteBtn").onclick = () => deleteMedia(item.id);
 
   // Lock scrolling
@@ -485,6 +553,87 @@ window.openLightbox = (id) => {
   lightboxModal.classList.remove("hidden");
   lucide.createIcons();
 };
+
+// Custom Video Player Skin Interactive Logic (JW Player inspired)
+function initCustomPlayer() {
+  const video = document.getElementById("customVideo");
+  const bigPlayBtn = document.getElementById("bigPlayBtn");
+  const bigPlayIcon = document.getElementById("bigPlayIcon");
+  const playPauseBtn = document.getElementById("videoPlayPauseBtn");
+  const playIcon = document.getElementById("videoPlayIcon");
+  const timeline = document.getElementById("videoTimeline");
+  const timeText = document.getElementById("videoTimeText");
+  const muteBtn = document.getElementById("videoMuteBtn");
+  const muteIcon = document.getElementById("videoMuteIcon");
+  const fullscreenBtn = document.getElementById("videoFullscreenBtn");
+
+  if (!video) return;
+
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  // Toggle Play / Pause
+  function togglePlay() {
+    if (video.paused) {
+      video.play();
+      bigPlayBtn.classList.add("opacity-0", "pointer-events-none");
+      playIcon.setAttribute("data-lucide", "pause");
+      lucide.createIcons();
+    } else {
+      video.pause();
+      bigPlayBtn.classList.remove("opacity-0", "pointer-events-none");
+      playIcon.setAttribute("data-lucide", "play");
+      lucide.createIcons();
+    }
+  }
+
+  bigPlayBtn.onclick = togglePlay;
+  playPauseBtn.onclick = togglePlay;
+  video.onclick = togglePlay;
+
+  // Metadata loaded
+  video.onloadedmetadata = () => {
+    timeline.max = Math.floor(video.duration);
+    timeText.innerText = `0:00 / ${formatTime(video.duration)}`;
+  };
+
+  // Update Progress / Current Time
+  video.ontimeupdate = () => {
+    timeline.value = Math.floor(video.currentTime);
+    timeText.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+  };
+
+  // Seek timeline
+  timeline.oninput = () => {
+    video.currentTime = timeline.value;
+  };
+
+  // Toggle Mute
+  muteBtn.onclick = () => {
+    video.muted = !video.muted;
+    if (video.muted) {
+      muteIcon.setAttribute("data-lucide", "volume-x");
+    } else {
+      muteIcon.setAttribute("data-lucide", "volume-2");
+    }
+    lucide.createIcons();
+  };
+
+  // Fullscreen
+  fullscreenBtn.onclick = () => {
+    if (video.requestFullscreen) {
+      video.requestFullscreen();
+    } else if (video.webkitRequestFullscreen) {
+      video.webkitRequestFullscreen();
+    } else if (video.msRequestFullscreen) {
+      video.msRequestFullscreen();
+    }
+  };
+}
 
 // Hapus Media
 async function deleteMedia(id) {
