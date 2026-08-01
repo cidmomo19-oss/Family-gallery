@@ -98,7 +98,6 @@ async function fetchMediaList() {
     const json = await res.json();
     if (json.success) {
       mediaItems = json.data;
-      calculateAndRenderStats();
       setupFlashbackWidget();
       if (currentFolder) {
         renderFolderGallery();
@@ -152,18 +151,8 @@ function preloadFlashbackItems(items) {
         img.onerror = () => resolve(item);
         img.src = item.view_url;
       } else {
-        const video = document.createElement("video");
-        video.preload = "auto";
-        video.src = `${item.view_url}#t=0.5`;
-        video.muted = true;
-        video.playsInline = true;
-
-        // Resolve on load start or metadata load to prevent endless waiting, but forcing caching
-        video.onloadedmetadata = () => resolve(item);
-        video.onerror = () => resolve(item);
-
-        // Timeout fallback to ensure execution progress
-        setTimeout(() => resolve(item), 1500);
+        // Resolve video preloading instantly to avoid stalling dashboard on large files
+        resolve(item);
       }
     });
   }));
@@ -227,11 +216,11 @@ function renderFlashbackList() {
       mediaHtml = `<img src="${item.view_url}" alt="${folderName}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
     } else {
       mediaHtml = `
-        <video src="${item.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="none"></video>
-        <div class="absolute inset-0 bg-black/15 flex items-center justify-center">
-          <div class="w-6 h-6 bg-white/90 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
-            <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
+        <div class="w-full h-full bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex flex-col items-center justify-center text-white relative">
+          <div class="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center border border-white/30 backdrop-blur-sm shadow-md transition-transform group-hover:scale-110">
+            <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
           </div>
+          <span class="text-[8px] font-bold tracking-wider uppercase opacity-85 mt-1">Video</span>
         </div>
       `;
     }
@@ -264,63 +253,6 @@ window.navigateToFolder = (encodedFolderName) => {
   }
 };
 
-// Calculate and render dynamic family storage stats
-function calculateAndRenderStats() {
-  const statsWidget = document.getElementById("statsWidget");
-  const statsPhotoCount = document.getElementById("statsPhotoCount");
-  const statsVideoCount = document.getElementById("statsVideoCount");
-  const statsStorageSize = document.getElementById("statsStorageSize");
-  const statsRatioText = document.getElementById("statsRatioText");
-  const statsPhotoBar = document.getElementById("statsPhotoBar");
-  const statsVideoBar = document.getElementById("statsVideoBar");
-
-  if (!statsWidget || mediaItems.length === 0) {
-    if (statsWidget) statsWidget.classList.add("hidden");
-    return;
-  }
-
-  statsWidget.classList.remove("hidden");
-
-  let photoCount = 0;
-  let videoCount = 0;
-  let totalBytes = 0;
-
-  mediaItems.forEach(item => {
-    if (item.media_type === "image") {
-      photoCount++;
-    } else if (item.media_type === "video") {
-      videoCount++;
-    }
-    totalBytes += (item.file_size || 0);
-  });
-
-  // Calculate formatted storage size
-  let formattedSize = "0 MB";
-  if (totalBytes > 0) {
-    const mb = totalBytes / (1024 * 1024);
-    if (mb >= 1024) {
-      formattedSize = `${(mb / 1024).toFixed(1)} GB`;
-    } else {
-      formattedSize = `${mb.toFixed(1)} MB`;
-    }
-  }
-
-  // Calculate percentages
-  const totalItems = photoCount + videoCount;
-  const photoPercent = totalItems > 0 ? Math.round((photoCount / totalItems) * 100) : 0;
-  const videoPercent = totalItems > 0 ? Math.round((videoCount / totalItems) * 100) : 0;
-
-  // Render text
-  if (statsPhotoCount) statsPhotoCount.innerText = `${photoCount} Foto`;
-  if (statsVideoCount) statsVideoCount.innerText = `${videoCount} Video`;
-  if (statsStorageSize) statsStorageSize.innerText = formattedSize;
-  if (statsRatioText) statsRatioText.innerText = `${photoPercent}% Foto / ${videoPercent}% Video`;
-
-  // Render animated bars
-  if (statsPhotoBar) statsPhotoBar.style.width = `${photoPercent}%`;
-  if (statsVideoBar) statsVideoBar.style.width = `${videoPercent}%`;
-}
-
 // Render Folder Grid
 function renderFolders() {
   const uploadSection = document.getElementById("uploadSection");
@@ -333,9 +265,14 @@ function renderFolders() {
     advantagesSection.classList.remove("hidden");
   }
 
-  const statsWidget = document.getElementById("statsWidget");
-  if (statsWidget && mediaItems.length > 0) {
-    statsWidget.classList.remove("hidden");
+  const mainDirectorySection = document.getElementById("mainDirectorySection");
+  if (mainDirectorySection) {
+    mainDirectorySection.classList.remove("hidden");
+  }
+
+  const folderPageSection = document.getElementById("folderPageSection");
+  if (folderPageSection) {
+    folderPageSection.classList.add("hidden");
   }
 
   const widget = document.getElementById("flashbackWidget");
@@ -422,13 +359,13 @@ function renderFolders() {
     if (previewImg) {
       previewHtml = `<img src="${previewImg.view_url}" alt="${f.name}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
     } else if (previewVideo) {
-      // Loop muted autoplay video thumbnail snippet with minimal preload
+      // Instant loading premium CSS gradient card
       previewHtml = `
-        <video src="${previewVideo.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="none"></video>
-        <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
-          <div class="w-7 h-7 bg-white/90 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
-            <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
+        <div class="w-full h-full bg-gradient-to-br from-violet-500 via-indigo-500 to-fuchsia-500 flex flex-col items-center justify-center text-white relative">
+          <div class="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center border border-white/30 backdrop-blur-sm shadow-md transition-transform group-hover:scale-110">
+            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
           </div>
+          <span class="text-[9px] font-black tracking-wider uppercase opacity-90 mt-1.5">Putar Video</span>
         </div>
       `;
     } else {
@@ -488,9 +425,14 @@ function renderFolderGallery() {
     advantagesSection.classList.add("hidden");
   }
 
-  const statsWidget = document.getElementById("statsWidget");
-  if (statsWidget) {
-    statsWidget.classList.add("hidden");
+  const mainDirectorySection = document.getElementById("mainDirectorySection");
+  if (mainDirectorySection) {
+    mainDirectorySection.classList.add("hidden");
+  }
+
+  const folderPageSection = document.getElementById("folderPageSection");
+  if (folderPageSection) {
+    folderPageSection.classList.remove("hidden");
   }
 
   const widget = document.getElementById("flashbackWidget");
@@ -515,8 +457,6 @@ function renderFolderGallery() {
 
   folderGrid.classList.add("hidden");
   galleryGrid.classList.remove("hidden");
-  document.getElementById("filterContainer").classList.remove("hidden");
-  document.getElementById("btnBackToFolders").classList.remove("hidden");
   document.getElementById("btnShareFolder").classList.remove("hidden");
   emptyState.classList.add("hidden");
 
@@ -539,11 +479,11 @@ function renderFolderGallery() {
     <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-purple-100/30">
       ${item.media_type === 'image'
         ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover">`
-        : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="none" muted playsinline></video>
-           <div class="absolute inset-0 bg-neutral-950/10 flex items-center justify-center">
-             <div class="w-8 h-8 bg-white/95 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
+        : `<div class="w-full h-full bg-gradient-to-tr from-violet-500 to-indigo-600 flex flex-col items-center justify-center text-white relative">
+             <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center border border-white/30 backdrop-blur-sm shadow-md transition-transform group-hover:scale-110">
                <i data-lucide="play" class="w-3 h-3 fill-current"></i>
              </div>
+             <span class="text-[8px] font-bold tracking-wider uppercase opacity-85 mt-1">Video</span>
            </div>`
       }
       <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5">
@@ -565,22 +505,6 @@ function setupEventListeners() {
   const btnBackToFolders = document.getElementById("btnBackToFolders");
   const btnShareFolder = document.getElementById("btnShareFolder");
   const searchFolderInput = document.getElementById("searchFolderInput");
-  const btnToggleStats = document.getElementById("btnToggleStats");
-  const statsContent = document.getElementById("statsContent");
-  const statsChevron = document.getElementById("statsChevron");
-
-  if (btnToggleStats && statsContent && statsChevron) {
-    btnToggleStats.onclick = () => {
-      const isHidden = statsContent.classList.contains("hidden");
-      if (isHidden) {
-        statsContent.classList.remove("hidden");
-        statsChevron.classList.add("rotate-180");
-      } else {
-        statsContent.classList.add("hidden");
-        statsChevron.classList.remove("rotate-180");
-      }
-    };
-  }
 
   if (searchFolderInput) {
     searchFolderInput.oninput = (e) => {
@@ -592,6 +516,8 @@ function setupEventListeners() {
   if (btnCloseLightbox) {
     btnCloseLightbox.onclick = () => {
       lightboxModal.classList.add("hidden");
+      const content = document.getElementById("lightboxContent");
+      if (content) content.innerHTML = ""; // Clear active media and stop background playing
       document.body.classList.remove("overflow-hidden");
     };
   }

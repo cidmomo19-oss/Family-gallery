@@ -100,42 +100,57 @@
   <div class="max-w-xl mx-auto w-full flex-1 flex flex-col">
 
     <!-- SCREEN 1 (Above the fold): Clean Upload Section Only -->
-    <section id="uploadSection" class="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] flex flex-col justify-center px-5 py-8 space-y-6">
-      <div class="space-y-3 text-center">
+    <section id="uploadSection" class="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] flex flex-col justify-center px-5 py-6 space-y-4">
+      <div class="space-y-1.5 text-center">
         <!-- High Contrast Elegant Headline -->
-        <h2 class="text-xl sm:text-2xl font-extrabold text-neutral-900 tracking-tight leading-snug px-2">
+        <h2 class="text-lg sm:text-xl font-extrabold text-neutral-900 tracking-tight leading-snug px-2">
           Simpan foto dan video di sini selamanya walaupun file asli sudah dihapus dari penyimpanan hp.
         </h2>
-        <p class="text-xs text-neutral-400 font-semibold max-w-sm mx-auto leading-relaxed">
+        <p class="text-[11px] text-neutral-400 font-semibold max-w-sm mx-auto leading-relaxed">
           Unggah banyak berkas secara instan langsung ke penyimpanan awan aman Bani Dumeri.
         </p>
       </div>
 
       <!-- Gorgeous Solid Direct Action Trigger Card -->
-      <div id="dropzone" class="premium-card p-10 sm:p-12 hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-purple-100/40 active:scale-[0.98] relative overflow-hidden group">
+      <div id="dropzone" class="premium-card p-7 sm:p-9 hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-purple-100/40 active:scale-[0.98] relative overflow-hidden group">
         <!-- Completely hidden native multiple file input -->
         <input type="file" id="fileInput" accept="image/*,video/*" multiple class="hidden">
 
         <div class="flex flex-col items-center text-center relative z-10">
-          <div class="w-16 h-14 bg-gradient-to-tr from-violet-600 to-fuchsia-500 text-white rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-105 transition-all duration-300">
-            <i data-lucide="upload" class="w-6 h-6"></i>
+          <div class="w-14 h-12 bg-gradient-to-tr from-violet-600 to-fuchsia-500 text-white rounded-2xl flex items-center justify-center mb-3 shadow-lg group-hover:scale-105 transition-all duration-300">
+            <i data-lucide="upload" class="w-5 h-5"></i>
           </div>
-          <span class="text-sm font-bold text-neutral-900 tracking-tight">Mulai Unggah Berkas</span>
-          <span class="text-[10px] text-neutral-400 mt-1 font-semibold">Mendukung multi-file & video langsung dari galeri HP</span>
+          <span class="text-xs font-bold text-neutral-900 tracking-tight">Mulai Unggah Berkas</span>
+          <span class="text-[9px] text-neutral-400 mt-0.5 font-semibold">Mendukung multi-file & video langsung dari galeri HP</span>
         </div>
       </div>
 
       <!-- Beautiful Queue Progress Container -->
-      <div id="uploadProgressContainer" class="hidden premium-card p-5 space-y-4">
-        <div class="flex justify-between items-center border-b border-purple-100/50 pb-2.5">
+      <div id="uploadProgressContainer" class="hidden premium-card p-4 space-y-3">
+        <div class="flex justify-between items-center border-b border-purple-100/50 pb-2">
           <span id="overallProgressText" class="text-[10px] font-extrabold text-violet-700 tracking-tight">Sedang memproses...</span>
           <span id="uploadPercent" class="text-[10px] font-extrabold text-violet-800 bg-violet-50 border border-violet-100/40 px-2 py-0.5 rounded-lg">0%</span>
         </div>
-        <div class="w-full bg-neutral-100 rounded-full h-1.5 overflow-hidden">
+        <div class="w-full bg-neutral-100 rounded-full h-1 overflow-hidden">
           <div id="progressBar" class="bg-gradient-to-r from-violet-600 to-fuchsia-500 h-full w-0 transition-all duration-300"></div>
         </div>
         <div id="statusList" class="max-h-24 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
           <!-- Queue rows -->
+        </div>
+      </div>
+
+      <!-- Kilas Balik Memori Widget (Visible only if there is media) -->
+      <div id="flashbackWidget" class="hidden premium-card p-3 sm:p-4 border border-purple-100/30 bg-gradient-to-br from-violet-50/20 via-white to-fuchsia-50/10 space-y-2.5 relative overflow-hidden group transition-all duration-300">
+        <div class="flex items-center gap-2">
+          <div class="w-5.5 h-5.5 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center shrink-0">
+            <i data-lucide="history" class="w-3 h-3"></i>
+          </div>
+          <span class="text-[9px] font-extrabold text-neutral-400 uppercase tracking-widest">Kilas Balik Memori Keluarga</span>
+        </div>
+
+        <!-- Grid list of multiple memories -->
+        <div id="flashbackList" class="grid grid-cols-3 gap-2.5 transition-all duration-500 opacity-100">
+          <!-- Rendered dynamically -->
         </div>
       </div>
 
@@ -147,88 +162,12 @@
     </section>
 
     <!-- SCREEN 2 (Scroll down): Folder-based Media Gallery -->
-    <section class="px-5 py-12 border-t border-purple-100/40 space-y-6">
-
-      <!-- Statistik Galeri Keluarga Widget -->
-      <div id="statsWidget" class="hidden premium-card p-5 border border-purple-100/30 bg-gradient-to-tr from-white to-violet-50/10 space-y-4">
-        <div class="flex items-center justify-between cursor-pointer" id="btnToggleStats">
-          <div class="flex items-center gap-2">
-            <div class="w-6 h-6 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center shrink-0">
-              <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
-            </div>
-            <span class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest">Informasi Statistik Galeri</span>
-          </div>
-          <i id="statsChevron" data-lucide="chevron-down" class="w-4 h-4 text-neutral-400 transition-transform duration-200"></i>
-        </div>
-
-        <div id="statsContent" class="hidden space-y-3.5 pt-1">
-          <!-- Stats stats grids -->
-          <div class="grid grid-cols-3 gap-2 text-center">
-            <div class="bg-neutral-50/70 border border-purple-100/30 p-2.5 rounded-2xl">
-              <span class="block text-[8px] font-extrabold text-neutral-400 uppercase tracking-wider">Jumlah Foto</span>
-              <span id="statsPhotoCount" class="text-xs font-black text-violet-700 mt-1 block">0</span>
-            </div>
-            <div class="bg-neutral-50/70 border border-purple-100/30 p-2.5 rounded-2xl">
-              <span class="block text-[8px] font-extrabold text-neutral-400 uppercase tracking-wider">Jumlah Video</span>
-              <span id="statsVideoCount" class="text-xs font-black text-fuchsia-700 mt-1 block">0</span>
-            </div>
-            <div class="bg-neutral-50/70 border border-purple-100/30 p-2.5 rounded-2xl">
-              <span class="block text-[8px] font-extrabold text-neutral-400 uppercase tracking-wider">Penyimpanan</span>
-              <span id="statsStorageSize" class="text-xs font-black text-neutral-800 mt-1 block">0 MB</span>
-            </div>
-          </div>
-
-          <!-- Visual progress bar breakdown -->
-          <div class="space-y-1.5">
-            <div class="flex justify-between text-[8px] font-extrabold text-neutral-400 uppercase tracking-widest">
-              <span>Rasio Foto & Video</span>
-              <span id="statsRatioText">0% / 0%</span>
-            </div>
-            <div class="w-full h-2 bg-neutral-100 rounded-full overflow-hidden flex">
-              <div id="statsPhotoBar" class="bg-violet-500 h-full w-0 transition-all duration-500"></div>
-              <div id="statsVideoBar" class="bg-fuchsia-500 h-full w-0 transition-all duration-500"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <section id="mainDirectorySection" class="px-5 py-12 border-t border-purple-100/40 space-y-6">
       <div class="flex items-center justify-between border-b border-purple-100/40 pb-4">
-        <div class="flex items-center gap-2">
-          <button id="btnBackToFolders" class="hidden text-violet-600 hover:text-violet-800 p-1.5 hover:bg-violet-50 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-            <span>Kembali</span>
-          </button>
-          <button id="btnShareFolder" class="hidden text-fuchsia-600 hover:text-fuchsia-800 p-1.5 hover:bg-fuchsia-50 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold">
-            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
-            <span>Bagikan</span>
-          </button>
-          <h3 id="galleryTitle" class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
-            <i data-lucide="folder" class="w-3.5 h-3.5 text-violet-500"></i>
-            <span>Daftar Folder Bani Dumeri</span>
-          </h3>
-        </div>
-
-        <!-- Filter Toggle (Only visible inside folder view) -->
-        <div id="filterContainer" class="hidden bg-neutral-100 p-0.5 rounded-xl border border-neutral-200/20">
-          <button data-cat="all" class="sub-cat-btn active px-3 py-1 rounded-lg text-[10px] font-bold bg-white text-neutral-900 shadow-sm transition-all duration-200">Semua</button>
-          <button data-cat="image" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Foto</button>
-          <button data-cat="video" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Video</button>
-        </div>
-      </div>
-
-      <!-- Kilas Balik Memori Widget (Visible only if there is media) -->
-      <div id="flashbackWidget" class="hidden premium-card p-4 sm:p-5 border border-purple-100/30 bg-gradient-to-br from-violet-50/20 via-white to-fuchsia-50/10 space-y-4 relative overflow-hidden group transition-all duration-300">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center shrink-0">
-            <i data-lucide="history" class="w-3.5 h-3.5"></i>
-          </div>
-          <span class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest">Kilas Balik Memori Keluarga</span>
-        </div>
-
-        <!-- Grid list of multiple memories -->
-        <div id="flashbackList" class="grid grid-cols-3 gap-3 transition-all duration-500 opacity-100">
-          <!-- Rendered dynamically -->
-        </div>
+        <h3 class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="folder" class="w-3.5 h-3.5 text-violet-500"></i>
+          <span>Daftar Folder Bani Dumeri</span>
+        </h3>
       </div>
 
       <!-- Search Folder Input Container -->
@@ -245,11 +184,6 @@
         <!-- Folder widgets rendered dynamically -->
       </div>
 
-      <!-- Nested Media Grid (Hidden initially until folder clicked) -->
-      <div id="galleryGrid" class="hidden grid grid-cols-3 gap-2.5">
-        <!-- Media tiles with subtle clean lines -->
-      </div>
-
       <!-- Empty State -->
       <div id="emptyState" class="hidden text-center py-20 bg-white border border-purple-100/30 rounded-3xl premium-card">
         <div class="p-3 bg-violet-50 text-violet-500 rounded-full inline-block mb-3 border border-violet-100/30">
@@ -257,6 +191,39 @@
         </div>
         <h4 class="text-xs font-bold text-neutral-800">Belum ada Folder</h4>
         <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Pilih berkas di atas dan tentukan folder penyimpanan untuk membuat folder pertama kamu.</p>
+      </div>
+    </section>
+
+    <!-- DEDICATED FOLDER DETAILS PAGE SECTION (Strictly isolated from upload & advantages) -->
+    <section id="folderPageSection" class="hidden px-5 py-8 space-y-6 flex-1 flex flex-col justify-start min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)]">
+      <!-- Folder Page Header -->
+      <div class="flex items-center justify-between border-b border-purple-100/40 pb-4 gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <button id="btnBackToFolders" class="text-violet-600 hover:text-violet-800 p-1.5 hover:bg-violet-50 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold shrink-0">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>Kembali</span>
+          </button>
+          <button id="btnShareFolder" class="text-fuchsia-600 hover:text-fuchsia-800 p-1.5 hover:bg-fuchsia-50 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold shrink-0">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+            <span>Bagikan</span>
+          </button>
+          <h3 id="galleryTitle" class="text-xs font-black text-neutral-800 flex items-center gap-1.5 min-w-0">
+            <i data-lucide="folder-open" class="w-3.5 h-3.5 text-violet-500 shrink-0"></i>
+            <span class="truncate max-w-[150px]">Nama Folder</span>
+          </h3>
+        </div>
+
+        <!-- Filter Toggle -->
+        <div id="filterContainer" class="bg-neutral-100 p-0.5 rounded-xl border border-neutral-200/20 flex shrink-0">
+          <button data-cat="all" class="sub-cat-btn active px-3 py-1 rounded-lg text-[10px] font-bold bg-white text-neutral-900 shadow-sm transition-all duration-200">Semua</button>
+          <button data-cat="image" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Foto</button>
+          <button data-cat="video" class="sub-cat-btn px-3 py-1 rounded-lg text-[10px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-200">Video</button>
+        </div>
+      </div>
+
+      <!-- Nested Media Grid -->
+      <div id="galleryGrid" class="grid grid-cols-3 gap-2.5">
+        <!-- Media tiles with subtle clean lines -->
       </div>
     </section>
 
