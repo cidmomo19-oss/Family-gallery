@@ -6,19 +6,10 @@ let mediaItems = [];
 let activeFilter = "all";
 let currentSelectedItem = null;
 
-// Track files currently in processing/uploading
-let uploadingQueue = [];
-
 // Initialize Lucide Icons
 lucide.createIcons();
 
 // DOM Elements
-const viewUpload = document.getElementById("viewUpload");
-const viewGallery = document.getElementById("viewGallery");
-
-const tabUploadBtn = document.getElementById("tabUploadBtn");
-const tabGalleryBtn = document.getElementById("tabGalleryBtn");
-
 const dropzone = document.getElementById("dropzone");
 const fileInput = document.getElementById("fileInput");
 
@@ -26,7 +17,6 @@ const galleryGrid = document.getElementById("galleryGrid");
 const emptyState = document.getElementById("emptyState");
 const lightboxModal = document.getElementById("lightboxModal");
 const settingsModal = document.getElementById("settingsModal");
-const searchInput = document.getElementById("searchInput");
 
 const uploadProgressContainer = document.getElementById("uploadProgressContainer");
 const progressBar = document.getElementById("progressBar");
@@ -67,16 +57,10 @@ async function fetchMediaList() {
   }
 }
 
-// Render Gallery Grid with high-fidelity thumbnail cards
+// Render Gallery Grid with high-fidelity, high-density square grids perfect for mobile viewports
 function renderGallery() {
-  const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
-  
   const filtered = mediaItems.filter(item => {
-    const matchSearch = item.title.toLowerCase().includes(searchTerm) || 
-                        (item.description && item.description.toLowerCase().includes(searchTerm)) ||
-                        (item.category && item.category.toLowerCase().includes(searchTerm));
-    const matchCat = activeFilter === "all" ? true : item.media_type === activeFilter;
-    return matchSearch && matchCat;
+    return activeFilter === "all" ? true : item.media_type === activeFilter;
   });
 
   if (filtered.length === 0) {
@@ -87,19 +71,19 @@ function renderGallery() {
 
   emptyState.classList.add("hidden");
   galleryGrid.innerHTML = filtered.map(item => `
-    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 border border-neutral-200/40">
+    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-neutral-200/40">
       ${item.media_type === 'image'
-        ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-[1.03] transition duration-500">`
+        ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover">`
         : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
            <div class="absolute inset-0 bg-neutral-950/10 flex items-center justify-center">
-             <div class="w-10 h-10 bg-white/95 backdrop-blur-sm rounded-full text-neutral-900 shadow-md flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-               <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+             <div class="w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full text-neutral-900 shadow-sm flex items-center justify-center">
+               <i data-lucide="play" class="w-3 h-3 fill-current"></i>
              </div>
            </div>`
       }
-      <!-- Quick Overlay Actions -->
-      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5">
-        <p class="text-white text-[10px] font-bold truncate tracking-wide">${item.title}</p>
+      <!-- Quick Title Hover/Overlay -->
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2">
+        <p class="text-white text-[9px] font-bold truncate tracking-wide">${item.title}</p>
       </div>
     </div>
   `).join("");
@@ -127,9 +111,7 @@ function setupEventListeners() {
     };
   }
 
-  // Search & Filter (View Gallery)
-  if (searchInput) searchInput.oninput = () => renderGallery();
-
+  // Filter Sub-categories
   document.querySelectorAll(".sub-cat-btn").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".sub-cat-btn").forEach(b => {
@@ -143,53 +125,25 @@ function setupEventListeners() {
     };
   });
 
-  // Tab switcher
-  if (tabUploadBtn && tabGalleryBtn) {
-    tabUploadBtn.onclick = () => {
-      // Switch active class
-      tabUploadBtn.classList.add("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
-      tabUploadBtn.classList.remove("text-neutral-400", "hover:text-neutral-900");
-      tabGalleryBtn.classList.remove("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
-      tabGalleryBtn.classList.add("text-neutral-400", "hover:text-neutral-900");
-
-      // Toggle Views
-      viewUpload.classList.remove("hidden");
-      viewGallery.classList.add("hidden");
-    };
-
-    tabGalleryBtn.onclick = () => {
-      // Switch active class
-      tabGalleryBtn.classList.add("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
-      tabGalleryBtn.classList.remove("text-neutral-400", "hover:text-neutral-900");
-      tabUploadBtn.classList.remove("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
-      tabUploadBtn.classList.add("text-neutral-400", "hover:text-neutral-900");
-
-      // Toggle Views
-      viewGallery.classList.remove("hidden");
-      viewUpload.classList.add("hidden");
-      fetchMediaList();
-    };
-  }
-
-  // Huge Dropzone interactions - Click triggers file input directly (opens native OS selector instantly)
+  // Direct Mobile-friendly Dropzone File Selection trigger (opens native OS selector instantly)
   if (dropzone) {
     dropzone.onclick = () => {
       fileInput.click();
     };
 
-    // Drag and Drop support
+    // Drag and Drop fallback support
     dropzone.ondragover = (e) => {
       e.preventDefault();
-      dropzone.classList.add("border-neutral-400", "bg-neutral-50/50");
+      dropzone.classList.add("border-neutral-400", "bg-neutral-50");
     };
 
     dropzone.ondragleave = () => {
-      dropzone.classList.remove("border-neutral-400", "bg-neutral-50/50");
+      dropzone.classList.remove("border-neutral-400", "bg-neutral-50");
     };
 
     dropzone.ondrop = (e) => {
       e.preventDefault();
-      dropzone.classList.remove("border-neutral-400", "bg-neutral-50/50");
+      dropzone.classList.remove("border-neutral-400", "bg-neutral-50");
 
       if (e.dataTransfer.files.length > 0) {
         handleBatchUpload(Array.from(e.dataTransfer.files));
@@ -197,7 +151,7 @@ function setupEventListeners() {
     };
   }
 
-  // Native input triggers upload immediately after files are selected
+  // File input changes trigger upload instantly with zero prompts
   if (fileInput) {
     fileInput.onchange = (e) => {
       if (e.target.files.length > 0) {
@@ -321,7 +275,7 @@ async function handleBatchUpload(files) {
     }
   }
 
-  // Complete notification & switch view
+  // Complete notification & refresh view
   overallProgressText.innerText = "Unggahan selesai!";
   progressBar.style.width = "100%";
   uploadPercent.innerText = "100%";
@@ -329,8 +283,7 @@ async function handleBatchUpload(files) {
   setTimeout(() => {
     uploadProgressContainer.classList.add("hidden");
     fileInput.value = "";
-    // Automatically swap to Gallery tab to show uploaded assets immediately
-    tabGalleryBtn.click();
+    fetchMediaList();
   }, 1200);
 }
 

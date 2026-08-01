@@ -3,28 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kubah — Ruang Simpan Keluarga</title>
+  <title>Kubah Memori — Ruang Simpan Keluarga</title>
 
-  <!-- Premium Font & Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            neutral: {
+            brand: {
               50: '#fafafa',
               100: '#f5f5f5',
-              200: '#e5e5e5',
-              300: '#d4d4d4',
-              400: '#a3a3a3',
-              500: '#737373',
-              600: '#525252',
-              700: '#404040',
-              800: '#262626',
-              900: '#171717',
-              950: '#0a0a0a',
+              600: '#171717',
+              700: '#262626'
             }
           },
           fontFamily: {
@@ -41,24 +35,6 @@
       background-color: #fafafa;
       color: #171717;
     }
-
-    /* Elegant subtle shadows and details mimicking premium Linear/Vercel design systems */
-    .premium-card {
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01), 0 8px 24px rgba(0, 0, 0, 0.02);
-      border-radius: 20px;
-    }
-
-    .premium-btn {
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .premium-btn:active {
-      transform: scale(0.98);
-    }
-
-    /* Hide scrollbars */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -66,15 +42,11 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-
-    /* High-end loading animations */
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.5; }
-      50% { transform: scale(1.05); opacity: 0.8; }
-      100% { transform: scale(0.95); opacity: 0.5; }
-    }
-    .pulse-effect {
-      animation: pulse-ring 2s infinite ease-in-out;
+    .premium-card {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01), 0 8px 24px rgba(0, 0, 0, 0.02);
+      border-radius: 24px;
     }
   </style>
 </head>
@@ -82,134 +54,99 @@
 
   <!-- Minimal Header -->
   <header class="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-neutral-100 h-16 sm:h-20 flex items-center">
-    <div class="max-w-5xl mx-auto w-full px-6 flex items-center justify-between">
-
-      <!-- Logo Branding -->
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center text-white shadow-sm">
-          <i data-lucide="folder-archive" class="w-4 h-4"></i>
+    <div class="max-w-xl mx-auto w-full px-6 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-neutral-900 flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="cloud" class="w-4 h-4"></i>
         </div>
         <div>
-          <h1 class="text-sm font-bold tracking-tight text-neutral-900">Kubah</h1>
-          <p class="text-[9px] font-bold text-neutral-400 tracking-wider uppercase -mt-0.5">Ruang Simpan Keluarga</p>
+          <h1 class="text-sm font-bold tracking-tight text-neutral-900">Kubah Memori</h1>
+          <p class="text-[9px] font-bold text-neutral-400 tracking-wider uppercase -mt-0.5">Penyimpanan Keluarga</p>
         </div>
       </div>
 
-      <!-- High-end Pill Tab Switcher -->
-      <div class="flex bg-neutral-100 p-1 rounded-full border border-neutral-200/40 shadow-sm">
-        <button id="tabUploadBtn" class="premium-btn flex items-center gap-1.5 px-5 py-2 rounded-full text-[11px] font-semibold transition-all duration-300 bg-white text-neutral-900 shadow-sm border border-neutral-200/20">
-          <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-          <span>Upload</span>
-        </button>
-        <button id="tabGalleryBtn" class="premium-btn flex items-center gap-1.5 px-5 py-2 rounded-full text-[11px] font-semibold transition-all duration-300 text-neutral-400 hover:text-neutral-900">
-          <i data-lucide="images" class="w-3.5 h-3.5"></i>
-          <span>Galeri</span>
-        </button>
-      </div>
-
-      <!-- Subtle Settings -->
-      <div class="flex items-center">
-        <button id="btnSettings" class="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all duration-200" title="API Key Settings">
-          <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
-        </button>
-      </div>
-
+      <!-- Key Settings -->
+      <button id="btnSettings" class="p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-all" title="API Key Settings">
+        <i data-lucide="key" class="w-4 h-4"></i>
+      </button>
     </div>
   </header>
 
-  <!-- Main Workspace -->
-  <main class="max-w-5xl mx-auto w-full px-6 py-8 sm:py-16 flex-1 flex flex-col justify-center">
+  <!-- Mobile-focused Single Scroll Feed Workspace -->
+  <main class="max-w-xl mx-auto w-full px-5 py-6 flex-1 space-y-8">
 
-    <!-- VIEW 1: PREMIUM BATCH UPLOAD (Active Screen) -->
-    <section id="viewUpload" class="w-full max-w-lg mx-auto space-y-8 animate-fade-in">
+    <!-- Top Area: Professional Headline & Direct Mobile File Picker Trigger -->
+    <section class="space-y-4">
+      <div class="space-y-1 text-center sm:text-left">
+        <h2 class="text-base font-extrabold text-neutral-900 tracking-tight">Penyimpanan Kenangan Instan</h2>
+        <p class="text-xs text-neutral-400 font-medium">Klik tombol di bawah untuk langsung membuka file manager / galeri hp kamu dan mengunggah banyak foto atau video sekaligus.</p>
+      </div>
 
-      <!-- Luxury Minimal Dropzone Card -->
-      <div id="dropzone" class="premium-card relative group p-10 sm:p-14 transition-all duration-300 hover:border-neutral-300/80 hover:shadow-lg hover:shadow-neutral-200/30 text-center cursor-pointer flex flex-col items-center justify-center min-h-[340px] border border-neutral-200/60">
-        <!-- Hidden OS file trigger -->
+      <!-- Massive Direct Action Button (Launches native OS file picker instantly) -->
+      <div id="dropzone" class="premium-card p-6 sm:p-8 hover:border-neutral-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-neutral-200/60 active:scale-[0.98]">
+        <!-- Completely hidden native multiple file input -->
         <input type="file" id="fileInput" accept="image/*,video/*" multiple class="hidden">
 
-        <div class="flex flex-col items-center">
-          <div class="w-14 h-14 bg-neutral-50 text-neutral-900 rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-all duration-300 border border-neutral-200/30 shadow-sm">
-            <i data-lucide="plus" class="w-6 h-6"></i>
+        <div class="flex flex-col items-center text-center">
+          <div class="w-12 h-12 bg-neutral-900 text-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+            <i data-lucide="upload" class="w-5 h-5"></i>
           </div>
-          <h2 class="text-sm font-semibold tracking-tight text-neutral-900">
-            Pilih berkas untuk langsung upload
-          </h2>
-          <p class="text-xs text-neutral-400 mt-1.5 font-medium">
-            Atau seret foto & video langsung ke sini
-          </p>
-          <div class="mt-6 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-sm transition-all duration-200">
-            Buka File
-          </div>
+          <span class="text-xs font-bold text-neutral-900">Pilih Berkas & Upload</span>
+          <span class="text-[10px] text-neutral-400 mt-1 font-medium">Buka Galeri Foto / Video HP Kamu</span>
         </div>
       </div>
 
-      <!-- Minimal Queue Progress Bar -->
-      <div id="uploadProgressContainer" class="hidden premium-card p-5 space-y-4">
-        <div class="flex justify-between items-center border-b border-neutral-100 pb-2.5">
-          <span id="overallProgressText" class="text-[11px] font-bold text-neutral-800">Menyimpan berkas...</span>
-          <span id="uploadPercent" class="text-[10px] font-extrabold text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded">0%</span>
+      <!-- Queue Progress Container -->
+      <div id="uploadProgressContainer" class="hidden premium-card p-4 space-y-3">
+        <div class="flex justify-between items-center border-b border-neutral-100 pb-2">
+          <span id="overallProgressText" class="text-[10px] font-bold text-neutral-800">Mengunggah...</span>
+          <span id="uploadPercent" class="text-[9px] font-extrabold text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded">0%</span>
         </div>
         <div class="w-full bg-neutral-100 rounded-full h-1 overflow-hidden">
           <div id="progressBar" class="bg-neutral-900 h-full w-0 transition-all duration-300"></div>
         </div>
-        <!-- Simple list of files in queue -->
         <div id="statusList" class="max-h-24 overflow-y-auto space-y-1.5 pr-1 no-scrollbar">
           <!-- Queue rows -->
         </div>
       </div>
-
     </section>
 
-    <!-- VIEW 2: PREMIUM PHOTOS-STYLE GALLERY (Hidden by default) -->
-    <section id="viewGallery" class="hidden w-full space-y-6">
+    <!-- Bottom Area: Pure Media Gallery Grid -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
+        <h3 class="text-xs font-extrabold text-neutral-400 uppercase tracking-widest">Galeri Simpanan</h3>
 
-      <!-- Minimalist Filters -->
-      <div class="flex flex-row items-center justify-between border-b border-neutral-100 pb-4">
-
-        <!-- Search -->
-        <div class="relative max-w-[200px]">
-          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"></i>
-          <input type="text" id="searchInput" placeholder="Cari..."
-            class="w-full pl-8 pr-3 py-1.5 bg-neutral-100 border border-transparent rounded-lg text-xs focus:outline-none focus:bg-white focus:border-neutral-200 text-neutral-800 placeholder-neutral-400 transition-all">
+        <!-- Filter Toggle -->
+        <div class="flex bg-neutral-100 p-0.5 rounded-lg border border-neutral-200/20">
+          <button data-cat="all" class="sub-cat-btn active px-2.5 py-1 rounded-md text-[10px] font-bold bg-white text-neutral-900 shadow-sm">Semua</button>
+          <button data-cat="image" class="sub-cat-btn px-2.5 py-1 rounded-md text-[10px] font-bold text-neutral-400 hover:text-neutral-900">Foto</button>
+          <button data-cat="video" class="sub-cat-btn px-2.5 py-1 rounded-md text-[10px] font-bold text-neutral-400 hover:text-neutral-900">Video</button>
         </div>
-
-        <!-- Filter toggles -->
-        <div class="flex bg-neutral-100/60 p-0.5 rounded-lg border border-neutral-200/20">
-          <button data-cat="all" class="sub-cat-btn active px-3 py-1 rounded text-[11px] font-bold transition-all duration-150 bg-white text-neutral-900 shadow-sm">Semua</button>
-          <button data-cat="image" class="sub-cat-btn px-3 py-1 rounded text-[11px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-150">Foto</button>
-          <button data-cat="video" class="sub-cat-btn px-3 py-1 rounded text-[11px] font-bold text-neutral-400 hover:text-neutral-900 transition-all duration-150">Video</button>
-        </div>
-
       </div>
 
-      <!-- Pure Media-Only Grid -->
-      <div id="galleryGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+      <!-- Gallery Grid -->
+      <div id="galleryGrid" class="grid grid-cols-3 gap-2">
         <!-- Media tiles with subtle clean lines -->
       </div>
 
       <!-- Empty State -->
-      <div id="emptyState" class="hidden text-center py-20 bg-white border border-neutral-200/40 rounded-2xl max-w-sm mx-auto">
+      <div id="emptyState" class="hidden text-center py-16 bg-white border border-neutral-200/40 rounded-3xl">
         <div class="p-3 bg-neutral-50 text-neutral-400 rounded-full inline-block mb-3 border border-neutral-100">
-          <i data-lucide="inbox" class="w-5 h-5"></i>
+          <i data-lucide="archive" class="w-5 h-5"></i>
         </div>
-        <h3 class="text-xs font-bold text-neutral-800">Penyimpanan Kosong</h3>
-        <p class="text-neutral-400 text-[11px] mt-1 max-w-[240px] mx-auto leading-relaxed">Penyimpanan belum terisi. Silakan upload berkas baru.</p>
-        <button onclick="document.getElementById('tabUploadBtn').click()" class="mt-4 px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-[10px] font-bold transition-all">
-          Upload Sekarang
-        </button>
+        <h4 class="text-xs font-bold text-neutral-800">Penyimpanan Kosong</h4>
+        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Pilih berkas di atas untuk mulai menyimpan kenangan pertama kamu.</p>
       </div>
-
     </section>
 
   </main>
 
   <!-- Key Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 bg-neutral-900/10 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white border border-neutral-200/60 rounded-2xl w-full max-w-xs p-5 space-y-4 shadow-xl">
+  <div id="settingsModal" class="fixed inset-0 bg-neutral-900/15 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white border border-neutral-200/60 rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-xl">
       <div class="flex justify-between items-center">
         <h3 class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-          <i data-lucide="key-round" class="w-3.5 h-3.5 text-neutral-800"></i> API Key Settings
+          <i data-lucide="key" class="w-3.5 h-3.5 text-neutral-800"></i> API Key Settings
         </h3>
         <button id="btnCloseSettings" class="text-neutral-400 hover:text-neutral-600 p-1 hover:bg-neutral-50 rounded-lg transition">
           <i data-lucide="x" class="w-3.5 h-3.5"></i>
@@ -232,7 +169,7 @@
       <i data-lucide="x" class="w-5 h-5"></i>
     </button>
     
-    <div class="max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center space-y-4">
+    <div class="max-w-md w-full max-h-[90vh] flex flex-col items-center justify-center space-y-4">
       <div id="lightboxContent" class="w-full flex justify-center max-h-[75vh]">
         <!-- Dynamically rendered -->
       </div>
@@ -240,10 +177,10 @@
       <!-- Minimal Floating Action Bar inside Lightbox -->
       <div class="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl shadow-xl">
         <span id="lightboxTitle" class="text-[10px] font-bold text-white tracking-tight truncate max-w-[150px] mr-2"></span>
-        <a id="lightboxDownloadBtn" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-900 rounded-lg text-[10px] font-bold transition shadow-sm">
-          <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Download
+        <a id="lightboxDownloadBtn" target="_blank" class="premium-btn flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-900 rounded-lg text-[10px] font-bold transition shadow-sm">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
         </a>
-        <button id="lightboxDeleteBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-300 rounded-lg text-[10px] font-bold transition border border-red-500/20">
+        <button id="lightboxDeleteBtn" class="premium-btn flex items-center gap-1.5 px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-300 rounded-lg text-[10px] font-bold transition border border-red-500/20">
           <i data-lucide="trash" class="w-3.5 h-3.5"></i> Hapus
         </button>
       </div>
@@ -251,8 +188,8 @@
   </div>
 
   <!-- Subtle Footer -->
-  <footer class="py-6 text-center text-[9px] text-neutral-400 font-bold uppercase tracking-widest bg-neutral-50/60 border-t border-neutral-200/30">
-    Kubah &copy; <span id="currentYear">2026</span> &bull; Penyimpanan Keluarga
+  <footer class="py-6 text-center text-[9px] text-neutral-400 font-bold uppercase tracking-widest bg-slate-50 border-t border-slate-200/30">
+    Kubah Memori &copy; <span id="currentYear">2026</span> &bull; Penyimpanan Keluarga
   </footer>
 
   <script src="app.js"></script>
