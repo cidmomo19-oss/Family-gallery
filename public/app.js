@@ -67,7 +67,7 @@ async function fetchMediaList() {
   }
 }
 
-// Render Gallery Grid
+// Render Gallery Grid with high-fidelity thumbnail cards
 function renderGallery() {
   const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
   
@@ -87,19 +87,19 @@ function renderGallery() {
 
   emptyState.classList.add("hidden");
   galleryGrid.innerHTML = filtered.map(item => `
-    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-slate-100 rounded-2xl overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300">
+    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 border border-neutral-200/40">
       ${item.media_type === 'image'
-        ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">`
+        ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-[1.03] transition duration-500">`
         : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
-           <div class="absolute inset-0 bg-slate-900/10 flex items-center justify-center">
-             <div class="p-2.5 bg-white/90 rounded-full text-slate-900 shadow-md">
+           <div class="absolute inset-0 bg-neutral-950/10 flex items-center justify-center">
+             <div class="w-10 h-10 bg-white/95 backdrop-blur-sm rounded-full text-neutral-900 shadow-md flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                <i data-lucide="play" class="w-4 h-4 fill-current"></i>
              </div>
            </div>`
       }
       <!-- Quick Overlay Actions -->
-      <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-        <p class="text-white text-[11px] font-bold truncate">${item.title}</p>
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5">
+        <p class="text-white text-[10px] font-bold truncate tracking-wide">${item.title}</p>
       </div>
     </div>
   `).join("");
@@ -133,11 +133,11 @@ function setupEventListeners() {
   document.querySelectorAll(".sub-cat-btn").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".sub-cat-btn").forEach(b => {
-        b.classList.remove("bg-white", "text-slate-900", "shadow-sm");
-        b.classList.add("text-slate-500", "hover:text-slate-900");
+        b.classList.remove("bg-white", "text-neutral-900", "shadow-sm");
+        b.classList.add("text-neutral-400", "hover:text-neutral-900");
       });
-      btn.classList.remove("text-slate-500", "hover:text-slate-900");
-      btn.classList.add("bg-white", "text-slate-900", "shadow-sm");
+      btn.classList.remove("text-neutral-400", "hover:text-neutral-900");
+      btn.classList.add("bg-white", "text-neutral-900", "shadow-sm");
       activeFilter = btn.dataset.cat;
       renderGallery();
     };
@@ -147,10 +147,10 @@ function setupEventListeners() {
   if (tabUploadBtn && tabGalleryBtn) {
     tabUploadBtn.onclick = () => {
       // Switch active class
-      tabUploadBtn.classList.add("bg-white", "text-slate-900", "shadow-sm");
-      tabUploadBtn.classList.remove("text-slate-500", "hover:text-slate-900");
-      tabGalleryBtn.classList.remove("bg-white", "text-slate-900", "shadow-sm");
-      tabGalleryBtn.classList.add("text-slate-500", "hover:text-slate-900");
+      tabUploadBtn.classList.add("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
+      tabUploadBtn.classList.remove("text-neutral-400", "hover:text-neutral-900");
+      tabGalleryBtn.classList.remove("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
+      tabGalleryBtn.classList.add("text-neutral-400", "hover:text-neutral-900");
 
       // Toggle Views
       viewUpload.classList.remove("hidden");
@@ -159,10 +159,10 @@ function setupEventListeners() {
 
     tabGalleryBtn.onclick = () => {
       // Switch active class
-      tabGalleryBtn.classList.add("bg-white", "text-slate-900", "shadow-sm");
-      tabGalleryBtn.classList.remove("text-slate-500", "hover:text-slate-900");
-      tabUploadBtn.classList.remove("bg-white", "text-slate-900", "shadow-sm");
-      tabUploadBtn.classList.add("text-slate-500", "hover:text-slate-900");
+      tabGalleryBtn.classList.add("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
+      tabGalleryBtn.classList.remove("text-neutral-400", "hover:text-neutral-900");
+      tabUploadBtn.classList.remove("bg-white", "text-neutral-900", "shadow-sm", "border", "border-neutral-200/20");
+      tabUploadBtn.classList.add("text-neutral-400", "hover:text-neutral-900");
 
       // Toggle Views
       viewGallery.classList.remove("hidden");
@@ -180,16 +180,16 @@ function setupEventListeners() {
     // Drag and Drop support
     dropzone.ondragover = (e) => {
       e.preventDefault();
-      dropzone.classList.add("border-slate-500", "bg-slate-50");
+      dropzone.classList.add("border-neutral-400", "bg-neutral-50/50");
     };
 
     dropzone.ondragleave = () => {
-      dropzone.classList.remove("border-slate-500", "bg-slate-50");
+      dropzone.classList.remove("border-neutral-400", "bg-neutral-50/50");
     };
 
     dropzone.ondrop = (e) => {
       e.preventDefault();
-      dropzone.classList.remove("border-slate-500", "bg-slate-50");
+      dropzone.classList.remove("border-neutral-400", "bg-neutral-50/50");
 
       if (e.dataTransfer.files.length > 0) {
         handleBatchUpload(Array.from(e.dataTransfer.files));
@@ -221,9 +221,9 @@ async function handleBatchUpload(files) {
 
   // Initialize status queue UI list
   statusList.innerHTML = files.map(f => `
-    <div id="file-row-${f.name.replace(/[^a-zA-Z0-9]/g, '')}" class="flex items-center justify-between text-[11px] bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-      <span class="text-slate-700 font-bold truncate max-w-[70%]">${f.name}</span>
-      <span class="status-badge text-slate-400 font-extrabold uppercase tracking-wide text-[9px]">Menunggu...</span>
+    <div id="file-row-${f.name.replace(/[^a-zA-Z0-9]/g, '')}" class="flex items-center justify-between text-[10px] bg-neutral-50 p-2 rounded-lg border border-neutral-100">
+      <span class="text-neutral-700 font-semibold truncate max-w-[70%]">${f.name}</span>
+      <span class="status-badge text-neutral-400 font-extrabold uppercase tracking-wider text-[8px]">Menunggu</span>
     </div>
   `).join("");
 
@@ -239,13 +239,13 @@ async function handleBatchUpload(files) {
     const lastDotIndex = file.name.lastIndexOf(".");
     const autoTitle = lastDotIndex !== -1 ? file.name.substring(0, lastDotIndex) : file.name;
 
-    overallProgressText.innerText = `Mengunggah file ke-${i + 1} dari ${files.length}...`;
+    overallProgressText.innerText = `Menyimpan berkas ke-${i + 1} dari ${files.length}...`;
     progressBar.style.width = "0%";
     uploadPercent.innerText = "0%";
 
     if (badgeEl) {
-      badgeEl.innerText = "Mengunggah...";
-      badgeEl.className = "status-badge text-amber-600 font-extrabold uppercase tracking-wide text-[9px]";
+      badgeEl.innerText = "Mengunggah";
+      badgeEl.className = "status-badge text-amber-500 font-extrabold uppercase tracking-wider text-[8px]";
     }
 
     try {
@@ -309,20 +309,20 @@ async function handleBatchUpload(files) {
       successCount++;
       if (badgeEl) {
         badgeEl.innerText = "Selesai";
-        badgeEl.className = "status-badge text-green-600 font-extrabold uppercase tracking-wide text-[9px]";
+        badgeEl.className = "status-badge text-green-600 font-extrabold uppercase tracking-wider text-[8px]";
       }
     } catch (err) {
       console.error(`Gagal mengunggah ${file.name}:`, err);
       failCount++;
       if (badgeEl) {
         badgeEl.innerText = "Gagal";
-        badgeEl.className = "status-badge text-red-600 font-extrabold uppercase tracking-wide text-[9px]";
+        badgeEl.className = "status-badge text-red-500 font-extrabold uppercase tracking-wider text-[8px]";
       }
     }
   }
 
   // Complete notification & switch view
-  overallProgressText.innerText = "Semua unggahan selesai diproses!";
+  overallProgressText.innerText = "Unggahan selesai!";
   progressBar.style.width = "100%";
   uploadPercent.innerText = "100%";
 
@@ -331,7 +331,7 @@ async function handleBatchUpload(files) {
     fileInput.value = "";
     // Automatically swap to Gallery tab to show uploaded assets immediately
     tabGalleryBtn.click();
-  }, 1500);
+  }, 1200);
 }
 
 // Lightbox Detail Viewer
@@ -343,9 +343,9 @@ window.openLightbox = (id) => {
   const contentContainer = document.getElementById("lightboxContent");
 
   if (item.media_type === "image") {
-    contentContainer.innerHTML = `<img src="${item.view_url}" class="max-h-[75vh] w-auto object-contain rounded-2xl shadow-2xl border border-white/5">`;
+    contentContainer.innerHTML = `<img src="${item.view_url}" class="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl">`;
   } else {
-    contentContainer.innerHTML = `<video src="${item.view_url}" controls autoplay class="max-h-[75vh] w-full rounded-2xl shadow-2xl border border-white/5"></video>`;
+    contentContainer.innerHTML = `<video src="${item.view_url}" controls autoplay class="max-h-[75vh] w-full rounded-xl shadow-2xl"></video>`;
   }
 
   document.getElementById("lightboxTitle").innerText = item.title;
@@ -361,7 +361,7 @@ window.openLightbox = (id) => {
 
 // Hapus Media
 async function deleteMedia(id) {
-  if (!confirm("Hapus file kenangan ini selamanya dari penyimpanan?")) return;
+  if (!confirm("Hapus file ini selamanya?")) return;
 
   const currentKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
 
