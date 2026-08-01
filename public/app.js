@@ -76,7 +76,7 @@ function renderGallery() {
         ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover">`
         : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
            <div class="absolute inset-0 bg-neutral-950/10 flex items-center justify-center">
-             <div class="w-8 h-8 bg-white/95 backdrop-blur-sm rounded-full text-violet-600 shadow-sm flex items-center justify-center">
+             <div class="w-8 h-8 bg-white/95 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
                <i data-lucide="play" class="w-3 h-3 fill-current"></i>
              </div>
            </div>`

@@ -47,42 +47,27 @@
       scrollbar-width: none;
     }
 
-    /* Beautiful glassmorphic design and colorful glowing cards */
+    /* Beautiful Solid Modern Design Systems (No glassmorphism, completely clean and solid) */
     .premium-card {
       background: #ffffff;
-      border: 1px solid rgba(139, 92, 246, 0.08);
-      box-shadow: 0 4px 20px -2px rgba(139, 92, 246, 0.04), 0 2px 6px -1px rgba(139, 92, 246, 0.02);
+      border: 1px solid #f1eef4;
+      box-shadow: 0 4px 20px -2px rgba(124, 58, 237, 0.03), 0 2px 6px -1px rgba(124, 58, 237, 0.01);
       border-radius: 24px;
-    }
-
-    /* Soft ambient glowing backdrop blur */
-    .glow-bg {
-      position: absolute;
-      width: 150px;
-      height: 150px;
-      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.05) 70%, transparent 100%);
-      filter: blur(40px);
-      z-index: -1;
-      pointer-events: none;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-accent-100 relative overflow-x-hidden">
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-accent-100 relative">
 
-  <!-- Floating Glow Backdrops -->
-  <div class="glow-bg top-10 left-5"></div>
-  <div class="glow-bg top-80 right-5"></div>
-
-  <!-- Minimal Header -->
-  <header class="sticky top-0 z-40 bg-white/75 backdrop-blur-md border-b border-purple-100/40 h-16 sm:h-20 flex items-center shadow-[0_1px_10px_-4px_rgba(139,92,246,0.05)]">
+  <!-- Minimal Fixed Header -->
+  <header class="sticky top-0 z-40 bg-white border-b border-purple-100/50 h-16 sm:h-20 flex items-center shadow-sm">
     <div class="max-w-xl mx-auto w-full px-6 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <!-- Colorful Gradient Logo Container -->
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/10">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-fuchsia-500 flex items-center justify-center text-white shadow-md">
           <i data-lucide="cloud" class="w-4.5 h-4.5"></i>
         </div>
         <div>
-          <h1 class="text-xs font-extrabold tracking-tight text-neutral-900 flex items-center gap-1 bg-gradient-to-r from-violet-700 to-fuchsia-600 bg-clip-text text-transparent">
+          <h1 class="text-xs font-extrabold tracking-tight text-neutral-900 bg-gradient-to-r from-violet-700 to-fuchsia-600 bg-clip-text text-transparent">
             Bani Dumeri
           </h1>
           <p class="text-[9px] font-bold text-neutral-400 tracking-wider uppercase -mt-0.5">Penyimpanan Keluarga</p>
@@ -96,61 +81,32 @@
     </div>
   </header>
 
-  <!-- Mobile-focused Single Scroll Feed Workspace -->
-  <main class="max-w-xl mx-auto w-full px-5 py-6 flex-1 space-y-8 relative">
+  <!-- Mobile-focused Scroll-Based Workspace -->
+  <div class="max-w-xl mx-auto w-full flex-1 flex flex-col">
 
-    <!-- Top Area: Professional Headline & Direct Mobile File Picker Trigger -->
-    <section class="space-y-5">
-      <div class="space-y-2 text-center">
+    <!-- SCREEN 1 (Above the fold): Clean Upload Section Only -->
+    <section class="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] flex flex-col justify-center px-5 py-8 space-y-6">
+      <div class="space-y-3 text-center">
         <!-- High Contrast Elegant Headline -->
-        <h2 class="text-lg font-extrabold text-neutral-900 tracking-tight leading-snug">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-neutral-900 tracking-tight leading-snug px-2">
           Simpan foto dan video di sini selamanya walaupun file asli sudah dihapus dari penyimpanan hp.
         </h2>
-        <p class="text-xs text-neutral-400 font-medium max-w-sm mx-auto leading-relaxed">
-          Arsip digital eksklusif keluarga Bani Dumeri. Cepat, aman, dan tanpa repot.
+        <p class="text-xs text-neutral-400 font-semibold max-w-sm mx-auto leading-relaxed">
+          Unggah banyak berkas secara instan langsung ke penyimpanan awan aman Bani Dumeri.
         </p>
       </div>
 
-      <!-- Gorgeous Vibrant Direct Action Button -->
-      <div id="dropzone" class="premium-card p-8 sm:p-10 hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-purple-100/40 active:scale-[0.98] relative overflow-hidden group">
-        <!-- Glow Overlay effect on Hover -->
-        <div class="absolute inset-0 bg-gradient-to-tr from-violet-50/10 to-fuchsia-50/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
+      <!-- Gorgeous Solid Direct Action Trigger Card -->
+      <div id="dropzone" class="premium-card p-10 sm:p-12 hover:border-violet-300 transition-all cursor-pointer flex flex-col items-center justify-center border border-purple-100/40 active:scale-[0.98] relative overflow-hidden group">
         <!-- Completely hidden native multiple file input -->
         <input type="file" id="fileInput" accept="image/*,video/*" multiple class="hidden">
 
         <div class="flex flex-col items-center text-center relative z-10">
-          <!-- Colorful Glow Trigger Icon -->
-          <div class="w-14 h-14 bg-gradient-to-tr from-violet-600 to-fuchsia-500 text-white rounded-2xl flex items-center justify-center mb-5 shadow-md shadow-violet-500/20 group-hover:scale-105 transition-all duration-300">
-            <i data-lucide="plus" class="w-6 h-6"></i>
+          <div class="w-16 h-14 bg-gradient-to-tr from-violet-600 to-fuchsia-500 text-white rounded-2xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-105 transition-all duration-300">
+            <i data-lucide="upload" class="w-6 h-6"></i>
           </div>
-          <span class="text-xs font-bold text-neutral-900 tracking-tight">Pilih Foto & Video</span>
-          <span class="text-[10px] text-neutral-400 mt-1 font-semibold">Buka file manager atau galeri HP langsung</span>
-        </div>
-      </div>
-
-      <!-- Features Highlight Grid (Professional Copy requested by user) -->
-      <div class="grid grid-cols-3 gap-3">
-        <div class="premium-card p-4 text-center flex flex-col items-center justify-center border border-purple-100/30">
-          <div class="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-2 shadow-sm">
-            <i data-lucide="zap" class="w-4 h-4"></i>
-          </div>
-          <h3 class="text-[10px] font-extrabold text-neutral-900 tracking-tight">Server Cepat</h3>
-          <p class="text-[9px] text-neutral-400 font-medium mt-0.5 leading-tight">Unggah instan</p>
-        </div>
-        <div class="premium-card p-4 text-center flex flex-col items-center justify-center border border-purple-100/30">
-          <div class="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-2 shadow-sm">
-            <i data-lucide="shield-check" class="w-4 h-4"></i>
-          </div>
-          <h3 class="text-[10px] font-extrabold text-neutral-900 tracking-tight">Permanen</h3>
-          <p class="text-[9px] text-neutral-400 font-medium mt-0.5 leading-tight">Simpan abadi</p>
-        </div>
-        <div class="premium-card p-4 text-center flex flex-col items-center justify-center border border-purple-100/30">
-          <div class="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-2 shadow-sm">
-            <i data-lucide="download-cloud" class="w-4 h-4"></i>
-          </div>
-          <h3 class="text-[10px] font-extrabold text-neutral-900 tracking-tight">Bisa Didownload</h3>
-          <p class="text-[9px] text-neutral-400 font-medium mt-0.5 leading-tight">Satu kali ketuk</p>
+          <span class="text-sm font-bold text-neutral-900 tracking-tight">Mulai Unggah Berkas</span>
+          <span class="text-[10px] text-neutral-400 mt-1 font-semibold">Mendukung multi-file & video langsung dari galeri HP</span>
         </div>
       </div>
 
@@ -167,10 +123,16 @@
           <!-- Queue rows -->
         </div>
       </div>
+
+      <!-- Scroll Indicator Helper -->
+      <div class="pt-4 flex flex-col items-center gap-1.5 animate-bounce text-neutral-300 font-bold">
+        <span class="text-[10px] uppercase tracking-widest text-neutral-400">Scroll ke bawah untuk melihat galeri</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-violet-500"></i>
+      </div>
     </section>
 
-    <!-- Bottom Area: Pure Media Gallery Grid -->
-    <section class="space-y-5">
+    <!-- SCREEN 2 (Scroll down): Solid styled Media Gallery -->
+    <section class="px-5 py-12 border-t border-purple-100/40 space-y-6">
       <div class="flex items-center justify-between border-b border-purple-100/40 pb-4">
         <h3 class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
           <i data-lucide="archive" class="w-3.5 h-3.5 text-violet-500"></i>
@@ -196,14 +158,56 @@
           <i data-lucide="hard-drive-upload" class="w-5 h-5"></i>
         </div>
         <h4 class="text-xs font-bold text-neutral-800">Penyimpanan Kosong</h4>
-        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Klik tombol di atas untuk mulai menyimpan kenangan pertama keluarga.</p>
+        <p class="text-neutral-400 text-[10px] mt-1 max-w-[200px] mx-auto leading-relaxed">Mulai simpan kenangan pertama keluarga dengan mengklik tombol di atas.</p>
       </div>
     </section>
 
-  </main>
+    <!-- SCREEN 3 (Scroll down further): Saas landing style Advantages section -->
+    <section class="px-5 py-12 border-t border-purple-100/40 space-y-6 bg-white/50">
+      <div class="text-center space-y-1.5 pb-4">
+        <span class="text-[9px] font-bold text-violet-600 uppercase tracking-widest">Fitur Unggulan</span>
+        <h3 class="text-base font-extrabold text-neutral-900 tracking-tight">Mengapa Menggunakan Kubah Bani Dumeri?</h3>
+        <p class="text-[10px] text-neutral-400 font-semibold max-w-xs mx-auto">Kami merancang penyimpanan ini khusus untuk kebutuhan dan kenyamanan keluarga.</p>
+      </div>
+
+      <!-- High-End SaaS Product Landing Cards -->
+      <div class="grid grid-cols-1 gap-4">
+        <div class="premium-card p-5 flex items-start gap-4 border border-purple-100/30">
+          <div class="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center shadow-sm shrink-0">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Server Cepat</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Didukung infrastruktur modern R2 Cloudflare untuk menjamin kecepatan unggah berkas tanpa hambatan.</p>
+          </div>
+        </div>
+
+        <div class="premium-card p-5 flex items-start gap-4 border border-purple-100/30">
+          <div class="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center shadow-sm shrink-0">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Penyimpanan Permanen</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Semua kenangan keluarga tersimpan abadi dan aman dalam jaringan awan privat terlindungi.</p>
+          </div>
+        </div>
+
+        <div class="premium-card p-5 flex items-start gap-4 border border-purple-100/30">
+          <div class="w-10 h-10 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center shadow-sm shrink-0">
+            <i data-lucide="download-cloud" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-extrabold text-neutral-900 tracking-tight">Bisa Didownload</h4>
+            <p class="text-[10px] text-neutral-400 font-medium mt-1 leading-relaxed">Unduh kembali berkas asli kapan pun kamu membutuhkannya hanya dengan satu kali ketuk.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
 
   <!-- Key Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 bg-neutral-950/20 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <div id="settingsModal" class="fixed inset-0 bg-neutral-950/20 z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white border border-purple-100/40 rounded-3xl w-full max-w-xs p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <h3 class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
@@ -224,9 +228,9 @@
     </div>
   </div>
 
-  <!-- Ultra-clean Full Screen Lightbox with high-end glassmorphism overlay -->
-  <div id="lightboxModal" class="fixed inset-0 bg-neutral-950/40 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
-    <button id="btnCloseLightbox" class="absolute top-5 right-5 text-neutral-400 hover:text-white p-2 rounded-full bg-neutral-900/20 hover:bg-neutral-900/60 transition duration-150 z-50">
+  <!-- Full Screen Lightbox (Fully opaque professional dark background) -->
+  <div id="lightboxModal" class="fixed inset-0 bg-neutral-950 z-50 flex items-center justify-center hidden p-4">
+    <button id="btnCloseLightbox" class="absolute top-5 right-5 text-neutral-400 hover:text-white p-2 rounded-full bg-neutral-900/40 hover:bg-neutral-900/60 transition duration-150 z-50">
       <i data-lucide="x" class="w-5 h-5"></i>
     </button>
     
@@ -235,8 +239,8 @@
         <!-- Dynamically rendered -->
       </div>
 
-      <!-- Minimal Floating Action Bar inside Lightbox with glass effect -->
-      <div class="flex items-center gap-3 bg-white/20 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-xl shadow-xl">
+      <!-- Minimal Floating Action Bar inside Lightbox with solid backgrounds -->
+      <div class="flex items-center gap-3 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl shadow-xl">
         <span id="lightboxTitle" class="text-[10px] font-bold text-white tracking-tight truncate max-w-[150px] mr-2"></span>
         <a id="lightboxDownloadBtn" target="_blank" class="premium-btn flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 text-neutral-900 rounded-lg text-[10px] font-bold transition shadow-sm">
           <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
