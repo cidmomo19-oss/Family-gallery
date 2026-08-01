@@ -111,51 +111,123 @@ async function fetchMediaList() {
 }
 
 // Kilas Balik Memori (Flashback Widget Setup)
-let flashbackItem = null;
+let flashbackItems = [];
+let flashbackIntervalId = null;
+
+function getRandomFlashbackItems(count = 3) {
+  if (mediaItems.length === 0) return [];
+
+  // Shuffle array and pick first N unique category items if possible, or just unique items
+  const shuffled = [...mediaItems].sort(() => 0.5 - Math.random());
+  const selected = [];
+  const categoriesSeen = new Set();
+
+  // Try to pick unique folders/categories first to make it diverse
+  for (const item of shuffled) {
+    const cat = item.category || "Umum";
+    if (!categoriesSeen.has(cat)) {
+      selected.push(item);
+      categoriesSeen.add(cat);
+      if (selected.length === count) break;
+    }
+  }
+
+  // Fallback: fill remaining if unique categories are fewer than requested count
+  if (selected.length < count) {
+    for (const item of shuffled) {
+      if (!selected.some(s => s.id === item.id)) {
+        selected.push(item);
+        if (selected.length === count) break;
+      }
+    }
+  }
+
+  return selected;
+}
+
 function setupFlashbackWidget() {
   const widget = document.getElementById("flashbackWidget");
-  const thumb = document.getElementById("flashbackThumb");
-  const title = document.getElementById("flashbackTitle");
-  const meta = document.getElementById("flashbackMeta");
-  const btnOpen = document.getElementById("btnOpenFlashback");
+  const listContainer = document.getElementById("flashbackList");
 
-  if (!widget || !thumb || !title || !meta || !btnOpen) return;
+  if (!widget || !listContainer) return;
 
   if (mediaItems.length === 0) {
     widget.classList.add("hidden");
     return;
   }
 
-  // Randomly select an item if not set already
-  if (!flashbackItem) {
-    const randomIndex = Math.floor(Math.random() * mediaItems.length);
-    flashbackItem = mediaItems[randomIndex];
+  // Initialize first set of flashback items
+  if (flashbackItems.length === 0) {
+    flashbackItems = getRandomFlashbackItems(3);
   }
 
-  if (flashbackItem.media_type === "image") {
-    thumb.innerHTML = `<img src="${flashbackItem.view_url}" alt="${flashbackItem.title}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
-  } else {
-    thumb.innerHTML = `
-      <video src="${flashbackItem.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="metadata"></video>
-      <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
-        <i data-lucide="play" class="w-4 h-4 text-white fill-current"></i>
+  renderFlashbackList();
+
+  // Setup smooth auto-rotation every 6 seconds without refresh
+  if (flashbackIntervalId) clearInterval(flashbackIntervalId);
+  flashbackIntervalId = setInterval(() => {
+    // Fade out smoothly
+    listContainer.classList.add("opacity-0", "translate-y-1");
+
+    setTimeout(() => {
+      // Pick new set of random items and render
+      flashbackItems = getRandomFlashbackItems(3);
+      renderFlashbackList();
+
+      // Fade in smoothly
+      listContainer.classList.remove("opacity-0", "translate-y-1");
+    }, 400); // Wait for fade-out transition
+  }, 6000);
+}
+
+function renderFlashbackList() {
+  const listContainer = document.getElementById("flashbackList");
+  if (!listContainer || flashbackItems.length === 0) return;
+
+  listContainer.innerHTML = flashbackItems.map(item => {
+    const folderName = item.category || "Umum";
+    let mediaHtml = "";
+
+    if (item.media_type === "image") {
+      mediaHtml = `<img src="${item.view_url}" alt="${folderName}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
+    } else {
+      mediaHtml = `
+        <video src="${item.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="none"></video>
+        <div class="absolute inset-0 bg-black/15 flex items-center justify-center">
+          <div class="w-6 h-6 bg-white/90 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
+            <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div onclick="navigateToFolder('${encodeURIComponent(folderName)}')" class="group cursor-pointer flex flex-col items-center text-center space-y-1.5 active:scale-95 transition-all duration-200">
+        <div class="aspect-square w-full rounded-2xl bg-neutral-100 overflow-hidden relative border border-purple-100/50 shadow-sm">
+          ${mediaHtml}
+        </div>
+        <div class="flex items-center gap-1 max-w-full px-1">
+          <i data-lucide="folder" class="w-3 h-3 text-neutral-400 shrink-0"></i>
+          <span class="text-[9px] font-bold text-neutral-700 truncate">${folderName}</span>
+        </div>
       </div>
     `;
-  }
-
-  title.innerText = flashbackItem.title;
-  meta.innerHTML = `
-    <i data-lucide="folder" class="w-2.5 h-2.5"></i>
-    <span>Folder: ${flashbackItem.category || "Umum"}</span>
-  `;
-
-  btnOpen.onclick = (e) => {
-    e.stopPropagation();
-    openLightbox(flashbackItem.id);
-  };
+  }).join("");
 
   lucide.createIcons();
 }
+
+// Navigate straight to the specific folder view
+window.navigateToFolder = (encodedFolderName) => {
+  const folderName = decodeURIComponent(encodedFolderName);
+  selectFolder(encodedFolderName);
+
+  // Smooth scroll down to Screen 2
+  const folderHeader = document.getElementById("galleryTitle");
+  if (folderHeader) {
+    folderHeader.scrollIntoView({ behavior: 'smooth' });
+  }
+};
 
 // Render Folder Grid
 function renderFolders() {
@@ -253,9 +325,9 @@ function renderFolders() {
     if (previewImg) {
       previewHtml = `<img src="${previewImg.view_url}" alt="${f.name}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">`;
     } else if (previewVideo) {
-      // Loop muted autoplay video thumbnail snippet
+      // Loop muted autoplay video thumbnail snippet with minimal preload
       previewHtml = `
-        <video src="${previewVideo.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="metadata"></video>
+        <video src="${previewVideo.view_url}#t=0.5" muted autoplay loop playsinline class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" preload="none"></video>
         <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
           <div class="w-7 h-7 bg-white/90 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
             <i data-lucide="play" class="w-2.5 h-2.5 fill-current"></i>
@@ -364,7 +436,7 @@ function renderFolderGallery() {
     <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-neutral-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md active:scale-95 transition-all duration-250 border border-purple-100/30">
       ${item.media_type === 'image'
         ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover">`
-        : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
+        : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="none" muted playsinline></video>
            <div class="absolute inset-0 bg-neutral-950/10 flex items-center justify-center">
              <div class="w-8 h-8 bg-white/95 rounded-full text-violet-600 shadow-sm flex items-center justify-center">
                <i data-lucide="play" class="w-3 h-3 fill-current"></i>
@@ -679,13 +751,14 @@ window.openLightbox = (id) => {
            class="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl no-download-touch">
     `;
   } else {
-    // Reverted to native HTML5 browser player with download blocking options
+    // Reverted to native HTML5 browser player with download blocking options and instant preload
     contentContainer.innerHTML = `
       <video src="${item.view_url}"
              controls
              controlslist="nodownload"
              oncontextmenu="return false;"
              playsinline
+             preload="auto"
              class="max-h-[75vh] w-full rounded-xl shadow-2xl no-download-touch"
              autoplay>
       </video>

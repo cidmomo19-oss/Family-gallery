@@ -140,7 +140,7 @@
       </div>
 
       <!-- Kilas Balik Memori Widget (Visible only if there is media) -->
-      <div id="flashbackWidget" class="hidden premium-card p-4 sm:p-5 border border-purple-100/30 bg-gradient-to-br from-violet-50/20 via-white to-fuchsia-50/10 space-y-3 relative overflow-hidden group">
+      <div id="flashbackWidget" class="hidden premium-card p-4 sm:p-5 border border-purple-100/30 bg-gradient-to-br from-violet-50/20 via-white to-fuchsia-50/10 space-y-4 relative overflow-hidden group">
         <div class="flex items-center gap-2">
           <div class="w-6 h-6 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center shrink-0">
             <i data-lucide="history" class="w-3.5 h-3.5"></i>
@@ -148,21 +148,9 @@
           <span class="text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest">Kilas Balik Memori Keluarga</span>
         </div>
 
-        <div class="flex items-center gap-4">
-          <div id="flashbackThumb" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-neutral-100 overflow-hidden shrink-0 border border-purple-100/30 relative">
-            <!-- Dynamic thumb image or video play sign -->
-          </div>
-          <div class="flex-1 min-w-0">
-            <h4 id="flashbackTitle" class="text-xs font-extrabold text-neutral-800 truncate">Sesuatu yang spesial</h4>
-            <p id="flashbackMeta" class="text-[9px] text-neutral-400 font-semibold mt-1 flex items-center gap-1">
-              <i data-lucide="folder" class="w-2.5 h-2.5"></i>
-              <span>Folder: Umum</span>
-            </p>
-            <button id="btnOpenFlashback" class="mt-2.5 px-3 py-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white text-[9px] font-bold rounded-xl shadow-sm transition-all flex items-center gap-1">
-              <i data-lucide="eye" class="w-3 h-3"></i>
-              <span>Buka Memori</span>
-            </button>
-          </div>
+        <!-- Grid list of multiple memories -->
+        <div id="flashbackList" class="grid grid-cols-3 gap-3 transition-all duration-500">
+          <!-- Rendered dynamically -->
         </div>
       </div>
 
