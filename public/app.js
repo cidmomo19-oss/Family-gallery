@@ -7,7 +7,7 @@ let activeFilter = "all";
 let currentSelectedItem = null;
 let currentFolder = null;
 let selectedFilesQueue = []; // Temporarily hold selected files
-let dpInstance = null; // Store active DPlayer instance
+let remoteUrlToUpload = null; // Temporarily hold remote link url
 
 // Initialize Lucide Icons
 lucide.createIcons();
@@ -27,6 +27,10 @@ const folderPromptModal = document.getElementById("folderPromptModal");
 const folderPromptInput = document.getElementById("folderPromptInput");
 const btnConfirmUpload = document.getElementById("btnConfirmUpload");
 const btnCancelUpload = document.getElementById("btnCancelUpload");
+
+// Remote MP4 upload elements
+const remoteLinkInput = document.getElementById("remoteLinkInput");
+const btnRemoteUpload = document.getElementById("btnRemoteUpload");
 
 const uploadProgressContainer = document.getElementById("uploadProgressContainer");
 const progressBar = document.getElementById("progressBar");
@@ -245,12 +249,6 @@ function setupEventListeners() {
     btnCloseLightbox.onclick = () => {
       lightboxModal.classList.add("hidden");
       document.body.classList.remove("overflow-hidden");
-
-      // Destroy DPlayer instance cleanly if any
-      if (dpInstance) {
-        dpInstance.destroy();
-        dpInstance = null;
-      }
     };
   }
 
@@ -290,6 +288,7 @@ function setupEventListeners() {
   if (btnCancelUpload) {
     btnCancelUpload.onclick = () => {
       selectedFilesQueue = [];
+      remoteUrlToUpload = null;
       fileInput.value = "";
       folderPromptInput.value = "";
       folderPromptModal.classList.add("hidden");
@@ -305,7 +304,36 @@ function setupEventListeners() {
         return;
       }
       folderPromptModal.classList.add("hidden");
-      handleBatchUpload(selectedFilesQueue, folderVal);
+
+      if (remoteUrlToUpload) {
+        handleRemoteUpload(remoteUrlToUpload, folderVal);
+      } else {
+        handleBatchUpload(selectedFilesQueue, folderVal);
+      }
+    };
+  }
+
+  // Bind Remote Link upload button click
+  if (btnRemoteUpload && remoteLinkInput) {
+    btnRemoteUpload.onclick = () => {
+      const linkVal = remoteLinkInput.value.trim();
+      if (!linkVal) {
+        alert("Silakan tempel URL video .mp4 terlebih dahulu!");
+        remoteLinkInput.focus();
+        return;
+      }
+      if (!linkVal.toLowerCase().endsWith(".mp4") && !linkVal.toLowerCase().includes(".mp4?")) {
+        alert("URL harus diakhiri atau memiliki format video .mp4!");
+        remoteLinkInput.focus();
+        return;
+      }
+
+      // Store link and prompt folder modal
+      remoteUrlToUpload = linkVal;
+      selectedFilesQueue = []; // Clear local file queue
+      folderPromptInput.value = "";
+      folderPromptModal.classList.remove("hidden");
+      folderPromptInput.focus();
     };
   }
 
@@ -332,6 +360,7 @@ function setupEventListeners() {
 
       if (e.dataTransfer.files.length > 0) {
         selectedFilesQueue = Array.from(e.dataTransfer.files);
+        remoteUrlToUpload = null; // Clear remote link
         // Show folder name prompt modal
         folderPromptInput.value = "";
         folderPromptModal.classList.remove("hidden");
@@ -345,6 +374,7 @@ function setupEventListeners() {
     fileInput.onchange = (e) => {
       if (e.target.files.length > 0) {
         selectedFilesQueue = Array.from(e.target.files);
+        remoteUrlToUpload = null; // Clear remote link
         // Show folder name prompt modal
         folderPromptInput.value = "";
         folderPromptModal.classList.remove("hidden");
@@ -352,6 +382,80 @@ function setupEventListeners() {
       }
     };
   }
+}
+
+// Handle Remote MP4 URL Link metadata entry in D1 Directly
+async function handleRemoteUpload(remoteUrl, folderName) {
+  // Extract custom title from url filename
+  let autoTitle = "Video Link";
+  try {
+    const parts = remoteUrl.split("/");
+    const lastPart = parts[parts.length - 1].split("?")[0];
+    if (lastPart && lastPart.toLowerCase().endsWith(".mp4")) {
+      autoTitle = lastPart.substring(0, lastPart.lastIndexOf("."));
+    }
+  } catch (e) {}
+
+  // Show status indicator
+  uploadProgressContainer.classList.remove("hidden");
+  overallProgressText.innerText = "Menghubungkan link video...";
+  progressBar.style.width = "40%";
+  uploadPercent.innerText = "40%";
+
+  statusList.innerHTML = `
+    <div class="flex items-center justify-between text-[10px] bg-neutral-50 p-2.5 rounded-xl border border-purple-100/30">
+      <span class="text-neutral-700 font-semibold truncate max-w-[70%]">${autoTitle}.mp4</span>
+      <span class="status-badge text-amber-500 font-extrabold uppercase tracking-wider text-[8px]">Menyimpan Link</span>
+    </div>
+  `;
+
+  try {
+    // Write directly to D1 metadata api
+    const saveRes = await fetch("/api/media", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: autoTitle,
+        description: "Remote Uploaded Link",
+        category: folderName,
+        media_type: "video",
+        r2_key: "remote-" + Date.now(),
+        view_url: remoteUrl,
+        download_url: remoteUrl,
+        file_size: 0
+      })
+    });
+
+    const saveData = await saveRes.json();
+    if (!saveData.success) throw new Error("Gagal menyimpan metadata link.");
+
+    progressBar.style.width = "100%";
+    uploadPercent.innerText = "100%";
+    overallProgressText.innerText = "Simpan link berhasil!";
+
+    const badge = document.querySelector(".status-badge");
+    if (badge) {
+      badge.innerText = "Selesai";
+      badge.className = "status-badge text-green-600 font-extrabold uppercase tracking-wider text-[8px]";
+    }
+  } catch (err) {
+    console.error("Gagal menyimpan remote link:", err);
+    progressBar.style.width = "100%";
+    overallProgressText.innerText = "Simpan link gagal.";
+    const badge = document.querySelector(".status-badge");
+    if (badge) {
+      badge.innerText = "Gagal";
+      badge.className = "status-badge text-red-500 font-extrabold uppercase tracking-wider text-[8px]";
+    }
+  }
+
+  setTimeout(() => {
+    uploadProgressContainer.classList.add("hidden");
+    remoteLinkInput.value = "";
+    remoteUrlToUpload = null;
+    currentFolder = folderName;
+    fetchMediaList();
+  }, 1200);
 }
 
 // Seamless batch upload logic with instantaneous execution and ZERO prompts
@@ -492,23 +596,24 @@ window.openLightbox = (id) => {
   const contentContainer = document.getElementById("lightboxContent");
 
   if (item.media_type === "image") {
-    contentContainer.innerHTML = `<img src="${item.view_url}" class="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl">`;
+    // Reverted plain photo viewer with right-click / context menu prevention
+    contentContainer.innerHTML = `
+      <img src="${item.view_url}"
+           oncontextmenu="return false;"
+           class="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl no-download-touch">
+    `;
   } else {
-    // Beautiful integration with DPlayer as requested
-    contentContainer.innerHTML = `<div id="dplayer-container" class="w-full h-[50vh] sm:h-[60vh]"></div>`;
-
-    // Initialize DPlayer instance
-    setTimeout(() => {
-      dpInstance = new DPlayer({
-        container: document.getElementById('dplayer-container'),
-        video: {
-          url: item.view_url,
-          thumbnails: '',
-        },
-        autoplay: true,
-        theme: '#8b5cf6' // Violet accent theme
-      });
-    }, 50);
+    // Reverted to native HTML5 browser player with download blocking options
+    contentContainer.innerHTML = `
+      <video src="${item.view_url}"
+             controls
+             controlslist="nodownload"
+             oncontextmenu="return false;"
+             playsinline
+             class="max-h-[75vh] w-full rounded-xl shadow-2xl no-download-touch"
+             autoplay>
+      </video>
+    `;
   }
 
   // Lock scrolling

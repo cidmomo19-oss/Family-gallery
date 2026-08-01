@@ -9,9 +9,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- DPlayer CSS and JS CDNs -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -59,10 +56,15 @@
       border-radius: 24px;
     }
 
-    /* Adjust DPlayer elements inside mobile view */
-    .dplayer {
-      border-radius: 12px;
-      overflow: hidden;
+    /* Prevent long-press selection or callout on photos/videos to disable copy/download */
+    .no-download-touch {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      -khtml-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+      pointer-events: auto;
     }
   </style>
 </head>
@@ -117,6 +119,22 @@
           </div>
           <span class="text-sm font-bold text-neutral-900 tracking-tight">Mulai Unggah Berkas</span>
           <span class="text-[10px] text-neutral-400 mt-1 font-semibold">Mendukung multi-file & video langsung dari galeri HP</span>
+        </div>
+      </div>
+
+      <!-- Remote Upload Link .mp4 Section -->
+      <div class="premium-card p-5 space-y-3 border border-purple-100/30">
+        <label class="block text-[10px] font-extrabold text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="link" class="w-3.5 h-3.5 text-violet-500"></i>
+          <span>Atau Simpan dari Link Video .mp4</span>
+        </label>
+        <div class="flex gap-2">
+          <input type="text" id="remoteLinkInput" placeholder="Tempel URL .mp4 di sini (Contoh: https://example.com/video.mp4)"
+            class="flex-1 px-4 py-2.5 bg-neutral-50 border border-purple-100/40 rounded-xl text-xs focus:outline-none focus:bg-white focus:ring-2 focus:ring-violet-400/20 focus:border-violet-500 text-neutral-800 placeholder-neutral-400 font-medium transition-all shadow-sm">
+          <button id="btnRemoteUpload" class="px-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white text-[10px] font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-1 shrink-0">
+            <i data-lucide="cloud-download" class="w-3.5 h-3.5"></i>
+            <span>Simpan</span>
+          </button>
         </div>
       </div>
 
@@ -248,7 +266,7 @@
 
   </div>
 
-  <!-- Folder Prompt Modal (Renders after file selection) -->
+  <!-- Folder Prompt Modal (Renders after file selection / remote URL submit) -->
   <div id="folderPromptModal" class="fixed inset-0 bg-neutral-950/40 z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white border border-purple-100/40 rounded-3xl w-full max-w-xs p-6 space-y-4 shadow-2xl">
       <div class="flex items-center gap-2 border-b border-purple-100/50 pb-3">
@@ -305,7 +323,7 @@
     
     <div class="max-w-md w-full max-h-[90vh] flex flex-col items-center justify-center space-y-4 relative">
       <div id="lightboxContent" class="w-full flex justify-center max-h-[75vh] relative overflow-hidden rounded-xl">
-        <!-- Dynamically rendered -->
+        <!-- Dynamically rendered (images and native videos) -->
       </div>
     </div>
   </div>
