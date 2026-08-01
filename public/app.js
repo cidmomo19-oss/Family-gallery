@@ -6,26 +6,33 @@ let mediaItems = [];
 let activeFilter = "all";
 let currentSelectedItem = null;
 
-// Track selected files for the custom file input view
-let selectedFilesList = [];
+// Track files currently in processing/uploading
+let uploadingQueue = [];
 
 // Initialize Lucide Icons
 lucide.createIcons();
 
 // DOM Elements
+const viewUpload = document.getElementById("viewUpload");
+const viewGallery = document.getElementById("viewGallery");
+
+const tabUploadBtn = document.getElementById("tabUploadBtn");
+const tabGalleryBtn = document.getElementById("tabGalleryBtn");
+
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+
 const galleryGrid = document.getElementById("galleryGrid");
 const emptyState = document.getElementById("emptyState");
-const uploadModal = document.getElementById("uploadModal");
 const lightboxModal = document.getElementById("lightboxModal");
 const settingsModal = document.getElementById("settingsModal");
-const uploadForm = document.getElementById("uploadForm");
 const searchInput = document.getElementById("searchInput");
 
-const fileInput = document.getElementById("fileInput");
-const selectedFilesContainer = document.getElementById("selectedFilesContainer");
-const selectedFilesCount = document.getElementById("selectedFilesCount");
-const selectedFilesListEl = document.getElementById("selectedFilesList");
-const btnClearSelection = document.getElementById("btnClearSelection");
+const uploadProgressContainer = document.getElementById("uploadProgressContainer");
+const progressBar = document.getElementById("progressBar");
+const uploadPercent = document.getElementById("uploadPercent");
+const overallProgressText = document.getElementById("overallProgressText");
+const statusList = document.getElementById("statusList");
 
 // App Init
 document.addEventListener("DOMContentLoaded", () => {
@@ -33,6 +40,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentYearEl = document.getElementById("currentYear");
   if (currentYearEl) {
     currentYearEl.innerText = new Date().getFullYear();
+  }
+
+  // Load API Key if saved in local storage (fallback to constant)
+  const apiKeyInput = document.getElementById("apiKeyInput");
+  const savedApiKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
+  if (apiKeyInput) {
+    apiKeyInput.value = savedApiKey;
   }
 
   fetchMediaList();
@@ -73,34 +87,19 @@ function renderGallery() {
 
   emptyState.classList.add("hidden");
   galleryGrid.innerHTML = filtered.map(item => `
-    <div onclick="openLightbox(${item.id})" class="group relative bg-white border border-slate-200/80 rounded-2xl overflow-hidden cursor-pointer hover:border-brand-400 hover:shadow-lg transition-all duration-300 flex flex-col shadow-sm">
-      <div class="relative aspect-[4/3] w-full bg-slate-50 overflow-hidden flex items-center justify-center border-b border-slate-100">
-        ${item.media_type === 'image' 
-          ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">`
-          : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
-             <div class="absolute inset-0 bg-slate-900/10 group-hover:bg-slate-900/20 flex items-center justify-center transition-all duration-300">
-               <div class="p-3 bg-brand-600/90 rounded-full text-white shadow-lg shadow-brand-600/20 transform group-hover:scale-110 transition duration-300">
-                 <i data-lucide="play" class="w-5 h-5 fill-current"></i>
-               </div>
-             </div>`
-        }
-        <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-md border border-slate-200/50 px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-700 tracking-wide uppercase flex items-center gap-1 shadow-sm">
-          <i data-lucide="${item.media_type === 'image' ? 'image' : 'video'}" class="w-3 h-3 text-brand-500"></i>
-          ${item.category || 'Umum'}
-        </span>
-      </div>
-      <div class="p-4 flex-1 flex flex-col justify-between bg-white">
-        <div>
-          <h3 class="font-bold text-slate-800 group-hover:text-brand-600 transition duration-200 line-clamp-1 text-sm tracking-tight">${item.title}</h3>
-          <p class="text-slate-500 text-xs mt-1 line-clamp-2 leading-relaxed">${item.description || 'Tidak ada cerita'}</p>
-        </div>
-        <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400 font-medium">
-          <span class="flex items-center gap-1">
-            <i data-lucide="calendar" class="w-3 h-3"></i>
-            ${new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
-          <span class="uppercase tracking-wider font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">${item.media_type}</span>
-        </div>
+    <div onclick="openLightbox(${item.id})" class="group relative aspect-square bg-slate-100 rounded-2xl overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300">
+      ${item.media_type === 'image'
+        ? `<img src="${item.view_url}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">`
+        : `<video src="${item.view_url}#t=0.5" class="w-full h-full object-cover" preload="metadata"></video>
+           <div class="absolute inset-0 bg-slate-900/10 flex items-center justify-center">
+             <div class="p-2.5 bg-white/90 rounded-full text-slate-900 shadow-md">
+               <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+             </div>
+           </div>`
+      }
+      <!-- Quick Overlay Actions -->
+      <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+        <p class="text-white text-[11px] font-bold truncate">${item.title}</p>
       </div>
     </div>
   `).join("");
@@ -110,249 +109,229 @@ function renderGallery() {
 
 // Handlers & Event Listeners
 function setupEventListeners() {
-  const btnOpenUpload = document.getElementById("btnOpenUpload");
-  const btnCloseUpload = document.getElementById("btnCloseUpload");
   const btnCloseLightbox = document.getElementById("btnCloseLightbox");
   const btnSettings = document.getElementById("btnSettings");
   const btnCloseSettings = document.getElementById("btnCloseSettings");
   const btnSaveKey = document.getElementById("btnSaveKey");
   const apiKeyInput = document.getElementById("apiKeyInput");
 
-  // Load API Key if saved in local storage (fallback to constant)
-  const savedApiKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
-  if (apiKeyInput) {
-    apiKeyInput.value = savedApiKey;
-  }
-
-  if (btnOpenUpload) btnOpenUpload.onclick = () => {
-    resetUploadForm();
-    uploadModal.classList.remove("hidden");
-  };
-  if (btnCloseUpload) btnCloseUpload.onclick = () => uploadModal.classList.add("hidden");
   if (btnCloseLightbox) btnCloseLightbox.onclick = () => lightboxModal.classList.add("hidden");
-
   if (btnSettings) btnSettings.onclick = () => settingsModal.classList.remove("hidden");
   if (btnCloseSettings) btnCloseSettings.onclick = () => settingsModal.classList.add("hidden");
 
   if (btnSaveKey && apiKeyInput) {
     btnSaveKey.onclick = () => {
       localStorage.setItem("POKOCO_API_KEY", apiKeyInput.value.trim());
-      alert("API Key berhasil disimpan!");
+      alert("API Key disimpan.");
       settingsModal.classList.add("hidden");
     };
   }
 
-  // Handle Multi-file selection display
-  if (fileInput) {
-    fileInput.onchange = (e) => {
-      selectedFilesList = Array.from(e.target.files);
-      updateSelectedFilesUI();
-    };
-  }
-
-  if (btnClearSelection) {
-    btnClearSelection.onclick = () => {
-      fileInput.value = "";
-      selectedFilesList = [];
-      updateSelectedFilesUI();
-    };
-  }
-
-  // Search & Filter
+  // Search & Filter (View Gallery)
   if (searchInput) searchInput.oninput = () => renderGallery();
-  document.querySelectorAll(".cat-btn").forEach(btn => {
+
+  document.querySelectorAll(".sub-cat-btn").forEach(btn => {
     btn.onclick = () => {
-      document.querySelectorAll(".cat-btn").forEach(b => {
-        b.classList.remove("bg-brand-600", "text-white", "shadow-sm");
-        b.classList.add("bg-white", "text-slate-600", "border", "border-slate-200/80");
+      document.querySelectorAll(".sub-cat-btn").forEach(b => {
+        b.classList.remove("bg-white", "text-slate-900", "shadow-sm");
+        b.classList.add("text-slate-500", "hover:text-slate-900");
       });
-      btn.classList.remove("bg-white", "text-slate-600", "border", "border-slate-200/80");
-      btn.classList.add("bg-brand-600", "text-white", "shadow-sm");
+      btn.classList.remove("text-slate-500", "hover:text-slate-900");
+      btn.classList.add("bg-white", "text-slate-900", "shadow-sm");
       activeFilter = btn.dataset.cat;
       renderGallery();
     };
   });
 
-  // Handle Form Upload
-  uploadForm.onsubmit = async (e) => {
-    e.preventDefault();
+  // Tab switcher
+  if (tabUploadBtn && tabGalleryBtn) {
+    tabUploadBtn.onclick = () => {
+      // Switch active class
+      tabUploadBtn.classList.add("bg-white", "text-slate-900", "shadow-sm");
+      tabUploadBtn.classList.remove("text-slate-500", "hover:text-slate-900");
+      tabGalleryBtn.classList.remove("bg-white", "text-slate-900", "shadow-sm");
+      tabGalleryBtn.classList.add("text-slate-500", "hover:text-slate-900");
 
-    if (selectedFilesList.length === 0) {
-      alert("Silakan pilih minimal satu file foto atau video.");
-      return;
+      // Toggle Views
+      viewUpload.classList.remove("hidden");
+      viewGallery.classList.add("hidden");
+    };
+
+    tabGalleryBtn.onclick = () => {
+      // Switch active class
+      tabGalleryBtn.classList.add("bg-white", "text-slate-900", "shadow-sm");
+      tabGalleryBtn.classList.remove("text-slate-500", "hover:text-slate-900");
+      tabUploadBtn.classList.remove("bg-white", "text-slate-900", "shadow-sm");
+      tabUploadBtn.classList.add("text-slate-500", "hover:text-slate-900");
+
+      // Toggle Views
+      viewGallery.classList.remove("hidden");
+      viewUpload.classList.add("hidden");
+      fetchMediaList();
+    };
+  }
+
+  // Huge Dropzone interactions - Click triggers file input directly (opens native OS selector instantly)
+  if (dropzone) {
+    dropzone.onclick = () => {
+      fileInput.click();
+    };
+
+    // Drag and Drop support
+    dropzone.ondragover = (e) => {
+      e.preventDefault();
+      dropzone.classList.add("border-slate-500", "bg-slate-50");
+    };
+
+    dropzone.ondragleave = () => {
+      dropzone.classList.remove("border-slate-500", "bg-slate-50");
+    };
+
+    dropzone.ondrop = (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("border-slate-500", "bg-slate-50");
+
+      if (e.dataTransfer.files.length > 0) {
+        handleBatchUpload(Array.from(e.dataTransfer.files));
+      }
+    };
+  }
+
+  // Native input triggers upload immediately after files are selected
+  if (fileInput) {
+    fileInput.onchange = (e) => {
+      if (e.target.files.length > 0) {
+        handleBatchUpload(Array.from(e.target.files));
+      }
+    };
+  }
+}
+
+// Seamless batch upload logic with instantaneous execution and ZERO prompts
+async function handleBatchUpload(files) {
+  if (files.length === 0) return;
+
+  const currentKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
+
+  // Reveal progress container
+  uploadProgressContainer.classList.remove("hidden");
+
+  let successCount = 0;
+  let failCount = 0;
+
+  // Initialize status queue UI list
+  statusList.innerHTML = files.map(f => `
+    <div id="file-row-${f.name.replace(/[^a-zA-Z0-9]/g, '')}" class="flex items-center justify-between text-[11px] bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+      <span class="text-slate-700 font-bold truncate max-w-[70%]">${f.name}</span>
+      <span class="status-badge text-slate-400 font-extrabold uppercase tracking-wide text-[9px]">Menunggu...</span>
+    </div>
+  `).join("");
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const isVideo = file.type.startsWith("video/");
+    const mediaType = isVideo ? "video" : "image";
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9]/g, '');
+    const rowEl = document.getElementById(`file-row-${sanitizedName}`);
+    const badgeEl = rowEl ? rowEl.querySelector(".status-badge") : null;
+
+    // Automatic filename-to-title mapping (remove extension)
+    const lastDotIndex = file.name.lastIndexOf(".");
+    const autoTitle = lastDotIndex !== -1 ? file.name.substring(0, lastDotIndex) : file.name;
+
+    overallProgressText.innerText = `Mengunggah file ke-${i + 1} dari ${files.length}...`;
+    progressBar.style.width = "0%";
+    uploadPercent.innerText = "0%";
+
+    if (badgeEl) {
+      badgeEl.innerText = "Mengunggah...";
+      badgeEl.className = "status-badge text-amber-600 font-extrabold uppercase tracking-wide text-[9px]";
     }
 
-    const customTitle = document.getElementById("titleInput").value.trim();
-    const category = document.getElementById("categoryInput").value;
-    const description = document.getElementById("descInput").value.trim();
-    const dateInput = document.getElementById("dateInput").value;
+    try {
+      // Step 1: Request Presigned Upload URL ke Pokoco API
+      const initRes = await fetch(`${POKOCO_BASE_URL}/api/upload`, {
+        method: "POST",
+        headers: {
+          "X-API-Key": currentKey,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          type: file.type || "application/octet-stream",
+          size: file.size,
+          filename: file.name
+        })
+      });
 
-    const progressContainer = document.getElementById("uploadProgressContainer");
-    const progressBar = document.getElementById("progressBar");
-    const uploadStatusText = document.getElementById("uploadStatusText");
-    const uploadPercent = document.getElementById("uploadPercent");
-    const overallProgressText = document.getElementById("overallProgressText");
-    const btnSubmit = document.getElementById("btnSubmitUpload");
+      const initData = await initRes.json();
+      if (!initData.success) throw new Error("Gagal mengontak Pokoco API.");
 
-    btnSubmit.disabled = true;
-    progressContainer.classList.remove("hidden");
+      // Step 2: PUT File Mentah ke uploadUrl Presigned Pokoco
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", initData.uploadUrl, true);
 
-    const currentKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressBar.style.width = `${percent}%`;
+            uploadPercent.innerText = `${percent}%`;
+          }
+        };
 
-    let successCount = 0;
-    let failCount = 0;
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error("Gagal upload file ke Pokoco Storage."));
+        };
+        xhr.onerror = () => reject(new Error("Koneksi terputus saat upload."));
+        xhr.send(file);
+      });
 
-    for (let i = 0; i < selectedFilesList.length; i++) {
-      const file = selectedFilesList[i];
-      const isVideo = file.type.startsWith("video/");
-      const mediaType = isVideo ? "video" : "image";
-
-      // Automatic fallback title generation
-      let title = customTitle;
-      if (!title) {
-        // Fallback: Use filename without extension
-        const lastDotIndex = file.name.lastIndexOf(".");
-        title = lastDotIndex !== -1 ? file.name.substring(0, lastDotIndex) : file.name;
-      } else if (selectedFilesList.length > 1) {
-        // If batch uploading and custom title is specified, append index
-        title = `${customTitle} (${i + 1})`;
-      }
-
-      overallProgressText.innerText = `Mengunggah file ke-${i + 1} dari ${selectedFilesList.length}...`;
-      progressBar.style.width = "0%";
-      uploadPercent.innerText = "0%";
-
-      try {
-        // Step 1: Request Presigned Upload URL ke Pokoco API
-        uploadStatusText.innerText = `Menghubungkan: ${file.name}`;
-        const initRes = await fetch(`${POKOCO_BASE_URL}/api/upload`, {
-          method: "POST",
-          headers: {
-            "X-API-Key": currentKey,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            type: file.type || "application/octet-stream",
-            size: file.size,
-            filename: file.name
-          })
-        });
-
-        const initData = await initRes.json();
-        if (!initData.success) throw new Error("Gagal mengontak Pokoco API. Silakan cek API Key Anda.");
-
-        // Step 2: PUT File Mentah ke uploadUrl Presigned Pokoco
-        uploadStatusText.innerText = `Mengirim: ${file.name}`;
-        
-        await new Promise((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open("PUT", initData.uploadUrl, true);
-
-          xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) {
-              const percent = Math.round((e.loaded / e.total) * 100);
-              progressBar.style.width = `${percent}%`;
-              uploadPercent.innerText = `${percent}%`;
-            }
-          };
-
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) resolve();
-            else reject(new Error("Gagal upload file ke Pokoco Storage."));
-          };
-          xhr.onerror = () => reject(new Error("Koneksi terputus saat upload."));
-          xhr.send(file);
-        });
-
-        // Step 3: Simpan Metadata ke D1 Database
-        uploadStatusText.innerText = `Menyimpan memori...`;
-
-        // Use custom date if provided, otherwise default to current server timestamp
-        const postData = {
-          title,
-          description,
-          category,
+      // Step 3: Simpan Metadata ke D1 Database (Simplified database insertion)
+      const saveRes = await fetch("/api/media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: autoTitle,
+          description: "", // No description
+          category: "Umum", // Default category
           media_type: mediaType,
           r2_key: initData.id,
           view_url: initData.viewUrl,
           download_url: initData.downloadUrl,
           file_size: file.size
-        };
+        })
+      });
 
-        if (dateInput) {
-          postData.created_at = new Date(dateInput).toISOString();
-        }
+      const saveData = await saveRes.json();
+      if (!saveData.success) throw new Error("Gagal menyimpan metadata ke Database.");
 
-        const saveRes = await fetch("/api/media", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(postData)
-        });
-
-        const saveData = await saveRes.json();
-        if (!saveData.success) throw new Error("Gagal menyimpan metadata ke Database.");
-
-        successCount++;
-      } catch (err) {
-        console.error(`Gagal mengunggah ${file.name}:`, err);
-        failCount++;
+      successCount++;
+      if (badgeEl) {
+        badgeEl.innerText = "Selesai";
+        badgeEl.className = "status-badge text-green-600 font-extrabold uppercase tracking-wide text-[9px]";
+      }
+    } catch (err) {
+      console.error(`Gagal mengunggah ${file.name}:`, err);
+      failCount++;
+      if (badgeEl) {
+        badgeEl.innerText = "Gagal";
+        badgeEl.className = "status-badge text-red-600 font-extrabold uppercase tracking-wide text-[9px]";
       }
     }
-
-    // Success / Finish Notification
-    progressContainer.classList.add("hidden");
-    btnSubmit.disabled = false;
-
-    if (failCount === 0) {
-      alert(`Berhasil mengunggah ${successCount} kenangan baru!`);
-    } else {
-      alert(`Selesai dengan kendala. Berhasil: ${successCount}, Gagal: ${failCount}.`);
-    }
-
-    uploadModal.classList.add("hidden");
-    resetUploadForm();
-    fetchMediaList();
-  };
-}
-
-function updateSelectedFilesUI() {
-  if (selectedFilesList.length > 0) {
-    selectedFilesContainer.classList.remove("hidden");
-    selectedFilesCount.innerText = selectedFilesList.length;
-
-    selectedFilesListEl.innerHTML = selectedFilesList.map((file, idx) => {
-      const isVideo = file.type.startsWith("video/");
-      const sizeKB = (file.size / 1024).toFixed(1);
-      const sizeStr = sizeKB > 1000 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`;
-
-      return `
-        <div class="flex items-center justify-between text-xs bg-white border border-slate-100 p-2 rounded-lg shadow-sm">
-          <div class="flex items-center gap-2 truncate max-w-[80%]">
-            <i data-lucide="${isVideo ? 'video' : 'image'}" class="w-4 h-4 text-brand-500 shrink-0"></i>
-            <span class="text-slate-700 font-medium truncate">${file.name}</span>
-          </div>
-          <span class="text-slate-400 text-[10px] shrink-0 font-semibold">${sizeStr}</span>
-        </div>
-      `;
-    }).join("");
-    lucide.createIcons();
-  } else {
-    selectedFilesContainer.classList.add("hidden");
   }
-}
 
-function resetUploadForm() {
-  uploadForm.reset();
-  selectedFilesList = [];
-  updateSelectedFilesUI();
+  // Complete notification & switch view
+  overallProgressText.innerText = "Semua unggahan selesai diproses!";
+  progressBar.style.width = "100%";
+  uploadPercent.innerText = "100%";
 
-  const progressBar = document.getElementById("progressBar");
-  const uploadPercent = document.getElementById("uploadPercent");
-  const progressContainer = document.getElementById("uploadProgressContainer");
-
-  if (progressBar) progressBar.style.width = "0%";
-  if (uploadPercent) uploadPercent.innerText = "0%";
-  if (progressContainer) progressContainer.classList.add("hidden");
+  setTimeout(() => {
+    uploadProgressContainer.classList.add("hidden");
+    fileInput.value = "";
+    // Automatically swap to Gallery tab to show uploaded assets immediately
+    tabGalleryBtn.click();
+  }, 1500);
 }
 
 // Lightbox Detail Viewer
@@ -364,16 +343,12 @@ window.openLightbox = (id) => {
   const contentContainer = document.getElementById("lightboxContent");
 
   if (item.media_type === "image") {
-    contentContainer.innerHTML = `<img src="${item.view_url}" class="max-h-[65vh] w-auto object-contain rounded-2xl shadow-2xl border border-slate-800/20">`;
+    contentContainer.innerHTML = `<img src="${item.view_url}" class="max-h-[75vh] w-auto object-contain rounded-2xl shadow-2xl border border-white/5">`;
   } else {
-    contentContainer.innerHTML = `<video src="${item.view_url}" controls autoplay class="max-h-[65vh] w-full rounded-2xl shadow-2xl border border-slate-800/20"></video>`;
+    contentContainer.innerHTML = `<video src="${item.view_url}" controls autoplay class="max-h-[75vh] w-full rounded-2xl shadow-2xl border border-white/5"></video>`;
   }
 
   document.getElementById("lightboxTitle").innerText = item.title;
-  document.getElementById("lightboxDesc").innerText = item.description || "Tidak ada cerita yang ditambahkan.";
-
-  const categoryEl = document.getElementById("lightboxCategory");
-  categoryEl.innerHTML = `<i data-lucide="${item.media_type === 'image' ? 'image' : 'video'}" class="w-3.5 h-3.5 mr-1"></i> ${item.category || 'Umum'}`;
   
   const downloadBtn = document.getElementById("lightboxDownloadBtn");
   downloadBtn.href = item.download_url;
@@ -386,7 +361,7 @@ window.openLightbox = (id) => {
 
 // Hapus Media
 async function deleteMedia(id) {
-  if (!confirm("Apakah kamu yakin ingin menghapus kenangan ini?")) return;
+  if (!confirm("Hapus file kenangan ini selamanya dari penyimpanan?")) return;
 
   const currentKey = localStorage.getItem("POKOCO_API_KEY") || POKOCO_API_KEY;
 
@@ -400,7 +375,6 @@ async function deleteMedia(id) {
     if (json.success) {
       lightboxModal.classList.add("hidden");
       fetchMediaList();
-      alert("Kenangan berhasil dihapus!");
     } else {
       alert(`Gagal menghapus: ${json.error}`);
     }
