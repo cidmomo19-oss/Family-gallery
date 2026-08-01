@@ -159,6 +159,16 @@ function setupFlashbackWidget() {
 
 // Render Folder Grid
 function renderFolders() {
+  const uploadSection = document.getElementById("uploadSection");
+  if (uploadSection) {
+    uploadSection.classList.remove("hidden");
+  }
+
+  const advantagesSection = document.getElementById("advantagesSection");
+  if (advantagesSection) {
+    advantagesSection.classList.remove("hidden");
+  }
+
   const widget = document.getElementById("flashbackWidget");
   if (widget && mediaItems.length > 0) {
     widget.classList.remove("hidden");
@@ -297,6 +307,16 @@ function renderFolderGallery() {
   if (!currentFolder) {
     renderFolders();
     return;
+  }
+
+  const uploadSection = document.getElementById("uploadSection");
+  if (uploadSection) {
+    uploadSection.classList.add("hidden");
+  }
+
+  const advantagesSection = document.getElementById("advantagesSection");
+  if (advantagesSection) {
+    advantagesSection.classList.add("hidden");
   }
 
   const folderFiles = mediaItems.filter(item => {

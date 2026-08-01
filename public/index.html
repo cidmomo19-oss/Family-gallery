@@ -100,7 +100,7 @@
   <div class="max-w-xl mx-auto w-full flex-1 flex flex-col">
 
     <!-- SCREEN 1 (Above the fold): Clean Upload Section Only -->
-    <section class="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] flex flex-col justify-center px-5 py-8 space-y-6">
+    <section id="uploadSection" class="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] flex flex-col justify-center px-5 py-8 space-y-6">
       <div class="space-y-3 text-center">
         <!-- High Contrast Elegant Headline -->
         <h2 class="text-xl sm:text-2xl font-extrabold text-neutral-900 tracking-tight leading-snug px-2">
@@ -139,16 +139,6 @@
         </div>
       </div>
 
-      <!-- Scroll Indicator Helper -->
-      <div class="pt-4 flex flex-col items-center gap-1.5 animate-bounce text-neutral-300 font-bold">
-        <span class="text-[10px] uppercase tracking-widest text-neutral-400">Scroll ke bawah untuk melihat galeri</span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-violet-500"></i>
-      </div>
-    </section>
-
-    <!-- SCREEN 2 (Scroll down): Folder-based Media Gallery -->
-    <section class="px-5 py-12 border-t border-purple-100/40 space-y-6">
-
       <!-- Kilas Balik Memori Widget (Visible only if there is media) -->
       <div id="flashbackWidget" class="hidden premium-card p-4 sm:p-5 border border-purple-100/30 bg-gradient-to-br from-violet-50/20 via-white to-fuchsia-50/10 space-y-3 relative overflow-hidden group">
         <div class="flex items-center gap-2">
@@ -175,6 +165,16 @@
           </div>
         </div>
       </div>
+
+      <!-- Scroll Indicator Helper -->
+      <div class="pt-4 flex flex-col items-center gap-1.5 animate-bounce text-neutral-300 font-bold">
+        <span class="text-[10px] uppercase tracking-widest text-neutral-400">Scroll ke bawah untuk melihat galeri</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-violet-500"></i>
+      </div>
+    </section>
+
+    <!-- SCREEN 2 (Scroll down): Folder-based Media Gallery -->
+    <section class="px-5 py-12 border-t border-purple-100/40 space-y-6">
 
       <div class="flex items-center justify-between border-b border-purple-100/40 pb-4">
         <div class="flex items-center gap-2">
@@ -230,7 +230,7 @@
     </section>
 
     <!-- SCREEN 3 (Scroll down further): Saas landing style Advantages section -->
-    <section class="px-5 py-12 border-t border-purple-100/40 space-y-6 bg-white/50">
+    <section id="advantagesSection" class="px-5 py-12 border-t border-purple-100/40 space-y-6 bg-white/50">
       <div class="text-center space-y-1.5 pb-4">
         <span class="text-[9px] font-bold text-violet-600 uppercase tracking-widest">Fitur & Keunggulan Unggulan</span>
         <h3 class="text-base font-extrabold text-neutral-900 tracking-tight">Kelebihan Eksklusif Kubah Bani Dumeri</h3>
